@@ -1,0 +1,7452 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<script src="https://d3js.org/d3.v6.js"></script>
+
+<body>
+
+    <h1>EARTHQUAKES - CROATIA</h1>
+
+  <div>
+    <button class="btn b2000" onclick="barplot(dataBar[0])">2000</button>
+    <button class="btn b2001" onclick="barplot(dataBar[1])">2001</button>
+    <button class="btn b2002" onclick="barplot(dataBar[2])">2002</button>
+    <button class="btn b2003" onclick="barplot(dataBar[3])">2003</button>
+    <button class="btn b2004" onclick="barplot(dataBar[4])">2004</button>
+    <button class="btn b2005" onclick="barplot(dataBar[5])">2005</button>
+    <button class="btn b2006" onclick="barplot(dataBar[6])">2006</button>
+    <button class="btn b2007" onclick="barplot(dataBar[7])">2007</button>
+    <button class="btn b2008" onclick="barplot(dataBar[8])">2008</button>
+    <button class="btn b2009" onclick="barplot(dataBar[9])">2009</button>
+    <button class="btn b2010" onclick="barplot(dataBar[10])">2010</button>
+    <button class="btn b2011" onclick="barplot(dataBar[11])">2011</button>
+    <button class="btn b2012" onclick="barplot(dataBar[12])">2012</button>
+    <button class="btn b2013" onclick="barplot(dataBar[13])">2013</button>
+    <button class="btn b2014" onclick="barplot(dataBar[14])">2014</button>
+    <button class="btn b2015" onclick="barplot(dataBar[15])">2015</button>
+    <button class="btn b2016" onclick="barplot(dataBar[16])">2016</button>
+    <button class="btn b2017" onclick="barplot(dataBar[17])">2017</button>
+    <button class="btn b2018" onclick="barplot(dataBar[18])">2018</button>
+    <button class="btn b2019" onclick="barplot(dataBar[19])">2019</button>
+    <button class="btn b2020" onclick="barplot(dataBar[20])">2020</button>
+    <button class="btn b2021" onclick="barplot(dataBar[21])">2021</button>
+    <button class="btn b2022" onclick="barplot(dataBar[22])">2022</button>
+  </div>
+
+  <div id="my_dataviz"></div>
+
+  <div>
+    <button class="btn play">PLAY</button>
+  </div>
+
+  <h1 id="current">2020</h1>
+
+  <div id="map">
+    <svg id="mapsvg" width="1000" height="750" transform="scale(1)"></svg>
+  </div>
+
+</body>
+
+<style>
+  #map {
+    position: absolute;
+    margin-left: 700px;
+    margin-top: -470px;
+    border: 2px solid #e7e7e7;
+    overflow: hidden;
+  }
+
+  #current {
+    position: absolute;
+    margin-left: 250px;
+    margin-top: 100px;
+  }
+
+  body {
+    background-color: #f7f6f4;
+    font-family: 'Nunito';
+    font-weight: bold;
+  }
+
+  .btn {
+    background-color: white;
+    border: 2px solid #e7e7e7;
+    padding: 16px 16px;
+    text-align: center;
+    text-decoration: none;
+    font-weight: bold;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    transition-duration: 0.4s;
+    cursor: pointer;
+  }
+
+  .play {
+    position: absolute;
+    margin-left: 240px;
+    width: 100px;
+  }
+
+  .btn:hover {
+    background-color: #e7e7e7;
+  }
+
+  circle:hover {
+    fill-opacity: 1;
+  }
+</style>
+
+<script>
+
+  const svg = d3.select("svg"),
+    width = +svg.attr("width"),
+    height = +svg.attr("height");
+
+  var projection = d3.geoMercator()
+    .center([16.5, 44.55])
+    .scale(6500)
+    .translate([width / 2, height / 2])
+
+  
+  // Data inside constant 'markers' is filtered from original dataset available at 'https://earthquake.usgs.gov/earthquakes/search/'
+
+  const markers = [
+    {
+      "year": 2000,
+      "lat": 45.427,
+      "long": 14.676,
+      "mag": 2.5,
+      "group": "Minor",
+      "place": "10 km WNW of Delnice, Croatia"
+    },
+    {
+      "year": 2000,
+      "lat": 45.514,
+      "long": 15.928,
+      "mag": 2.5,
+      "group": "Minor",
+      "place": "5 km ESE of Lasinja, Croatia"
+    },
+    {
+      "year": 2000,
+      "lat": 45.275,
+      "long": 14.504,
+      "mag": 2.5,
+      "group": "Minor",
+      "place": "4 km SSW of Bakar, Croatia"
+    },
+    {
+      "year": 2001,
+      "lat": 42.781,
+      "long": 17.974,
+      "mag": 2.5,
+      "group": "Minor",
+      "place": "13 km SE of Podgora, Croatia"
+    },
+    {
+      "year": 2002,
+      "lat": 42.908,
+      "long": 17.867,
+      "mag": 2.5,
+      "group": "Minor",
+      "place": "7 km NNE of Podgora, Croatia"
+    },
+    {
+      "year": 2002,
+      "lat": 45.39,
+      "long": 16.682,
+      "mag": 2.5,
+      "group": "Minor",
+      "place": "9 km ENE of Sunja, Croatia"
+    },
+    {
+      "year": 2002,
+      "lat": 45.103,
+      "long": 14.717,
+      "mag": 2.5,
+      "group": "Minor",
+      "place": "4 km NE of Vrbnik, Croatia"
+    },
+    {
+      "year": 2002,
+      "lat": 45.68,
+      "long": 15.738,
+      "mag": 2.5,
+      "group": "Minor",
+      "place": "2 km WNW of Donja Zden?ina, Croatia"
+    },
+    {
+      "year": 2002,
+      "lat": 43.082,
+      "long": 17.671,
+      "mag": 2.5,
+      "group": "Minor",
+      "place": "3 km NNE of Metkovi?, Croatia"
+    },
+    {
+      "year": 2002,
+      "lat": 42.656,
+      "long": 18.247,
+      "mag": 2.5,
+      "group": "Minor",
+      "place": "6 km ENE of ?iba?a, Croatia"
+    },
+    {
+      "year": 2002,
+      "lat": 45.94,
+      "long": 16.2,
+      "mag": 2.5,
+      "group": "Minor",
+      "place": "6 km ENE of Ka�ina, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 45.49,
+      "long": 14.406,
+      "mag": 2.5,
+      "group": "Minor",
+      "place": "5 km NNE of Klana, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.247,
+      "long": 15.186,
+      "mag": 2.5,
+      "group": "Minor",
+      "place": "70 km WSW of Primo�ten, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.145,
+      "long": 15.365,
+      "mag": 2.5,
+      "group": "Minor",
+      "place": "60 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.173,
+      "long": 15.449,
+      "mag": 2.5,
+      "group": "Minor",
+      "place": "54 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.116,
+      "long": 15.489,
+      "mag": 2.5,
+      "group": "Minor",
+      "place": "49 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 45.44,
+      "long": 14.509,
+      "mag": 2.5,
+      "group": "Minor",
+      "place": "6 km NNE of Dra�ice, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 45.613,
+      "long": 15.889,
+      "mag": 2.5,
+      "group": "Minor",
+      "place": "9 km NNE of Lasinja, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.039,
+      "long": 17.541,
+      "mag": 2.5,
+      "group": "Minor",
+      "place": "0 km ESE of Komin, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.214,
+      "long": 17.426,
+      "mag": 2.5,
+      "group": "Minor",
+      "place": "4 km ENE of Vrgorac, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 42.681,
+      "long": 18.217,
+      "mag": 2.5,
+      "group": "Minor",
+      "place": "6 km NNE of ?iba?a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 45.427,
+      "long": 14.299,
+      "mag": 2.5,
+      "group": "Minor",
+      "place": "6 km WSW of Klana, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.013,
+      "long": 17.782,
+      "mag": 2.5,
+      "group": "Minor",
+      "place": "11 km ESE of Metkovi?, Croatia"
+    },
+    {
+      "year": 2005,
+      "lat": 45.854,
+      "long": 15.729,
+      "mag": 2.5,
+      "group": "Minor",
+      "place": "2 km SW of Zdenci Brdove?ki, Croatia"
+    },
+    {
+      "year": 2005,
+      "lat": 46.514,
+      "long": 16.648,
+      "mag": 2.5,
+      "group": "Minor",
+      "place": "8 km NE of Dekanovec, Croatia"
+    },
+    {
+      "year": 2005,
+      "lat": 46.264,
+      "long": 16.222,
+      "mag": 2.5,
+      "group": "Minor",
+      "place": "1 km NW of Tu�no, Croatia"
+    },
+    {
+      "year": 2006,
+      "lat": 43,
+      "long": 17.699,
+      "mag": 2.5,
+      "group": "Minor",
+      "place": "7 km SE of Metkovi?, Croatia"
+    },
+    {
+      "year": 2006,
+      "lat": 43.133,
+      "long": 15.315,
+      "mag": 2.5,
+      "group": "Minor",
+      "place": "64 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2006,
+      "lat": 42.948,
+      "long": 16.281,
+      "mag": 2.5,
+      "group": "Minor",
+      "place": "14 km SSE of Vis, Croatia"
+    },
+    {
+      "year": 2007,
+      "lat": 43.009,
+      "long": 17.782,
+      "mag": 2.5,
+      "group": "Minor",
+      "place": "11 km ESE of Metkovi?, Croatia"
+    },
+    {
+      "year": 2007,
+      "lat": 45.002,
+      "long": 15.174,
+      "mag": 2.5,
+      "group": "Minor",
+      "place": "3 km E of Brinje, Croatia"
+    },
+    {
+      "year": 2007,
+      "lat": 42.675,
+      "long": 17.999,
+      "mag": 2.5,
+      "group": "Minor",
+      "place": "7 km W of Moko�ica, Croatia"
+    },
+    {
+      "year": 2008,
+      "lat": 43.981,
+      "long": 17.377,
+      "mag": 2.5,
+      "group": "Minor",
+      "place": "Croatia-Bosnia and Herzegovina border region"
+    },
+    {
+      "year": 2008,
+      "lat": 42.729,
+      "long": 17.961,
+      "mag": 2.5,
+      "group": "Minor",
+      "place": "12 km WNW of Moko�ica, Croatia"
+    },
+    {
+      "year": 2008,
+      "lat": 42.865,
+      "long": 17.878,
+      "mag": 2.5,
+      "group": "Minor",
+      "place": "3 km ENE of Podgora, Croatia"
+    },
+    {
+      "year": 2000,
+      "lat": 45.1,
+      "long": 14.56,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "6 km SSE of Njivice, Croatia"
+    },
+    {
+      "year": 2001,
+      "lat": 45.4,
+      "long": 15.157,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "7 km ENE of Vrbovsko, Croatia"
+    },
+    {
+      "year": 2001,
+      "lat": 43.579,
+      "long": 16.91,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "11 km NNW of Lovre?, Croatia"
+    },
+    {
+      "year": 2002,
+      "lat": 44.8,
+      "long": 14.98,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "16 km ENE of Banjol, Croatia"
+    },
+    {
+      "year": 2002,
+      "lat": 45.067,
+      "long": 15.402,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "2 km ESE of Pla�ki, Croatia"
+    },
+    {
+      "year": 2002,
+      "lat": 46.199,
+      "long": 16.902,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "1 km NE of Peteranec, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 45.947,
+      "long": 16.02,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "7 km ESE of Stubi?ke Toplice, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.013,
+      "long": 17.136,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "5 km NW of Orebi?, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 45.678,
+      "long": 15.709,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "4 km WNW of Donja Zden?ina, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 45.749,
+      "long": 15.87,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "1 km NE of Donji Stupnik, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 45.388,
+      "long": 14.421,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "2 km ESE of Mar?elji, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.181,
+      "long": 15.74,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "32 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.188,
+      "long": 15.408,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "58 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.204,
+      "long": 15.449,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "55 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.182,
+      "long": 15.393,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "59 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.165,
+      "long": 15.499,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "50 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.173,
+      "long": 15.387,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "59 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.102,
+      "long": 15.515,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "47 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.084,
+      "long": 15.465,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "51 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.154,
+      "long": 15.41,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "56 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.172,
+      "long": 15.376,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "60 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.045,
+      "long": 15.45,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "52 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.862,
+      "long": 16.048,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "8 km W of Drni�, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 45.872,
+      "long": 15.98,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "6 km N of Zagreb, Croatia"
+    },
+    {
+      "year": 2005,
+      "lat": 45.407,
+      "long": 14.977,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "5 km ESE of Skrad, Croatia"
+    },
+    {
+      "year": 2005,
+      "lat": 46.453,
+      "long": 16.655,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "4 km ENE of Doma�inec, Croatia"
+    },
+    {
+      "year": 2005,
+      "lat": 43.007,
+      "long": 17.699,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "6 km SE of Metkovi?, Croatia"
+    },
+    {
+      "year": 2006,
+      "lat": 44.978,
+      "long": 15.028,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "8 km WSW of Brinje, Croatia"
+    },
+    {
+      "year": 2006,
+      "lat": 42.773,
+      "long": 17.661,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "7 km SSW of Ston, Croatia"
+    },
+    {
+      "year": 2007,
+      "lat": 45.086,
+      "long": 14.723,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "4 km ENE of Vrbnik, Croatia"
+    },
+    {
+      "year": 2007,
+      "lat": 42.884,
+      "long": 17.875,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "5 km NE of Podgora, Croatia"
+    },
+    {
+      "year": 2007,
+      "lat": 42.726,
+      "long": 18.111,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "5 km NNE of Moko�ica, Croatia"
+    },
+    {
+      "year": 2007,
+      "lat": 45.033,
+      "long": 15,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "8 km ENE of Senj, Croatia"
+    },
+    {
+      "year": 2007,
+      "lat": 43.143,
+      "long": 15.335,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "62 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2008,
+      "lat": 44.095,
+      "long": 15.214,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "2 km NNE of Osljak, Croatia"
+    },
+    {
+      "year": 2008,
+      "lat": 43.706,
+      "long": 15.374,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "21 km SW of Murter, Croatia"
+    },
+    {
+      "year": 2015,
+      "lat": 45.7912,
+      "long": 16.0191,
+      "mag": 2.6,
+      "group": "Minor",
+      "place": "2 km ENE of Novi Zagreb, Croatia"
+    },
+    {
+      "year": 2000,
+      "lat": 45.858,
+      "long": 15.923,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "5 km ESE of Jablanovec, Croatia"
+    },
+    {
+      "year": 2000,
+      "lat": 45.246,
+      "long": 14.517,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "4 km NW of Omi�alj, Croatia"
+    },
+    {
+      "year": 2000,
+      "lat": 46.222,
+      "long": 16.478,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "4 km S of Jal�abet, Croatia"
+    },
+    {
+      "year": 2000,
+      "lat": 45.42,
+      "long": 15.88,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "7 km N of Gvozd, Croatia"
+    },
+    {
+      "year": 2001,
+      "lat": 43.338,
+      "long": 17.009,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "4 km N of Makarska, Croatia"
+    },
+    {
+      "year": 2001,
+      "lat": 45.771,
+      "long": 17.357,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "4 km WSW of Rezovac, Croatia"
+    },
+    {
+      "year": 2001,
+      "lat": 45.361,
+      "long": 14.735,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "6 km NNE of Fu�ine, Croatia"
+    },
+    {
+      "year": 2001,
+      "lat": 45.677,
+      "long": 15.788,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "2 km NE of Donja Zden?ina, Croatia"
+    },
+    {
+      "year": 2002,
+      "lat": 44.784,
+      "long": 15.008,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "Croatia region"
+    },
+    {
+      "year": 2002,
+      "lat": 44.81,
+      "long": 14.94,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "14 km ENE of Banjol, Croatia"
+    },
+    {
+      "year": 2002,
+      "lat": 45.45,
+      "long": 16.15,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "11 km W of Petrinja, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 42.645,
+      "long": 15.707,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "54 km SW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 42.806,
+      "long": 15.827,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "34 km SW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 42.798,
+      "long": 17.282,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "16 km SE of Lumbarda, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.212,
+      "long": 15.294,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "64 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.199,
+      "long": 15.366,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "60 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.259,
+      "long": 15.108,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "73 km SSW of Murter, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.133,
+      "long": 15.339,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "62 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.119,
+      "long": 15.354,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "60 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.096,
+      "long": 15.468,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "51 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.173,
+      "long": 15.344,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "62 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 42.851,
+      "long": 17.71,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "1 km NE of Ston, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 42.864,
+      "long": 17.873,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "3 km ENE of Podgora, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 45.39,
+      "long": 14.811,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "1 km SE of Delnice, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 45.431,
+      "long": 14.716,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "7 km WNW of Delnice, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 45.386,
+      "long": 14.758,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "3 km WSW of Delnice, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.196,
+      "long": 15.143,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "76 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.23,
+      "long": 15.601,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "44 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 45.069,
+      "long": 14.926,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "8 km N of Senj, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 44.97,
+      "long": 14.881,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "2 km SW of Senj, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 42.522,
+      "long": 18.306,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "9 km SE of Cavtat, Croatia"
+    },
+    {
+      "year": 2005,
+      "lat": 42.966,
+      "long": 17.565,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "5 km S of Opuzen, Croatia"
+    },
+    {
+      "year": 2005,
+      "lat": 45.95,
+      "long": 16.082,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "5 km NW of Ka�ina, Croatia"
+    },
+    {
+      "year": 2006,
+      "lat": 44.807,
+      "long": 13.607,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "20 km WSW of Pula, Croatia"
+    },
+    {
+      "year": 2006,
+      "lat": 45.205,
+      "long": 13.661,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "5 km NE of Funtana, Croatia"
+    },
+    {
+      "year": 2006,
+      "lat": 42.969,
+      "long": 16.14,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "9 km SSE of Komi�a, Croatia"
+    },
+    {
+      "year": 2006,
+      "lat": 42.84,
+      "long": 16.334,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "27 km SSE of Vis, Croatia"
+    },
+    {
+      "year": 2008,
+      "lat": 42.729,
+      "long": 17.96,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "12 km WNW of Moko�ica, Croatia"
+    },
+    {
+      "year": 2008,
+      "lat": 43.032,
+      "long": 17.49,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "3 km WSW of Komin, Croatia"
+    },
+    {
+      "year": 2008,
+      "lat": 45.402,
+      "long": 14.465,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "1 km NNW of Dra�ice, Croatia"
+    },
+    {
+      "year": 2008,
+      "lat": 43.402,
+      "long": 17.179,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "2 km WSW of Zmijavci, Croatia"
+    },
+    {
+      "year": 2008,
+      "lat": 42.757,
+      "long": 18.009,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "11 km NW of Moko�ica, Croatia"
+    },
+    {
+      "year": 2021,
+      "lat": 45.7205,
+      "long": 16.1689,
+      "mag": 2.7,
+      "group": "Minor",
+      "place": "4 km ENE of Novo ?i?e, Croatia"
+    },
+    {
+      "year": 2000,
+      "lat": 45.054,
+      "long": 14.596,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "3 km NNE of Krk, Croatia"
+    },
+    {
+      "year": 2000,
+      "lat": 44.042,
+      "long": 15.801,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "14 km WNW of Kistanje, Croatia"
+    },
+    {
+      "year": 2000,
+      "lat": 45.254,
+      "long": 14.882,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "7 km SSE of Mrkopalj, Croatia"
+    },
+    {
+      "year": 2000,
+      "lat": 45.979,
+      "long": 16.156,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "4 km SE of Marija Bistrica, Croatia"
+    },
+    {
+      "year": 2001,
+      "lat": 45.66,
+      "long": 15.7,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "4 km ESE of Jastrebarsko, Croatia"
+    },
+    {
+      "year": 2001,
+      "lat": 46.239,
+      "long": 16.461,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "2 km SSW of Jal�abet, Croatia"
+    },
+    {
+      "year": 2001,
+      "lat": 44.778,
+      "long": 14.132,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "14 km ESE of Li�njan, Croatia"
+    },
+    {
+      "year": 2001,
+      "lat": 45.073,
+      "long": 14.81,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "6 km SSE of Novi Vinodolski, Croatia"
+    },
+    {
+      "year": 2002,
+      "lat": 44.213,
+      "long": 15.558,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "5 km N of Pridraga, Croatia"
+    },
+    {
+      "year": 2002,
+      "lat": 45.93,
+      "long": 15.984,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "6 km SE of Stubi?ke Toplice, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 45.674,
+      "long": 15.794,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "2 km ENE of Donja Zden?ina, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.493,
+      "long": 15.971,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "3 km S of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.404,
+      "long": 15.815,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "18 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.198,
+      "long": 15.189,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "72 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.269,
+      "long": 15.573,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "42 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.378,
+      "long": 15.571,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "36 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.189,
+      "long": 15.574,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "45 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.169,
+      "long": 15.509,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "49 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.194,
+      "long": 15.741,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "33 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 42.988,
+      "long": 15.2,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "73 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.096,
+      "long": 15.411,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "55 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.086,
+      "long": 15.205,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "72 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.21,
+      "long": 15.304,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "64 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.107,
+      "long": 15.383,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "58 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.136,
+      "long": 15.413,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "56 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.249,
+      "long": 15.486,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "49 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.328,
+      "long": 15.411,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "50 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.316,
+      "long": 15.554,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "40 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.393,
+      "long": 15.451,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "43 km WSW of Primo�ten, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 42.985,
+      "long": 15.255,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "68 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.16,
+      "long": 15.727,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "32 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 45.477,
+      "long": 15.406,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "11 km W of Karlovac, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 42.642,
+      "long": 15.696,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "55 km SW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.299,
+      "long": 14.983,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "72 km SSW of Sali, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.289,
+      "long": 15.827,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "28 km SSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.163,
+      "long": 15.49,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "50 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.656,
+      "long": 15.707,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "11 km SSW of Tribunj, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.372,
+      "long": 15.493,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "42 km SW of Primo�ten, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.008,
+      "long": 15.04,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "85 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.129,
+      "long": 15.312,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "64 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.282,
+      "long": 15.452,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "49 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 45.29,
+      "long": 14.374,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "6 km SW of Rijeka, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 45.254,
+      "long": 14.55,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "2 km SSW of Kraljevica, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.167,
+      "long": 15.246,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "70 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 44.943,
+      "long": 14.949,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "6 km SSE of Senj, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 45.046,
+      "long": 15.001,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "9 km NE of Senj, Croatia"
+    },
+    {
+      "year": 2005,
+      "lat": 43.568,
+      "long": 16.898,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "11 km NW of Lovre?, Croatia"
+    },
+    {
+      "year": 2005,
+      "lat": 46.237,
+      "long": 16.592,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "2 km SW of Ludbreg, Croatia"
+    },
+    {
+      "year": 2005,
+      "lat": 45.342,
+      "long": 14.981,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "8 km WSW of Vrbovsko, Croatia"
+    },
+    {
+      "year": 2006,
+      "lat": 45.653,
+      "long": 18.437,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "1 km ESE of Valpovo, Croatia"
+    },
+    {
+      "year": 2006,
+      "lat": 45.457,
+      "long": 14.57,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "10 km NE of Podhum, Croatia"
+    },
+    {
+      "year": 2006,
+      "lat": 42.974,
+      "long": 16.151,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "9 km SSE of Komi�a, Croatia"
+    },
+    {
+      "year": 2006,
+      "lat": 43.207,
+      "long": 15.598,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "44 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2006,
+      "lat": 44.754,
+      "long": 13.355,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "40 km WSW of Fa�ana, Croatia"
+    },
+    {
+      "year": 2007,
+      "lat": 45.095,
+      "long": 14.889,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "8 km ESE of Novi Vinodolski, Croatia"
+    },
+    {
+      "year": 2008,
+      "lat": 45.276,
+      "long": 16.139,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "7 km SSE of Glina, Croatia"
+    },
+    {
+      "year": 2020,
+      "lat": 45.8425,
+      "long": 16.0078,
+      "mag": 2.8,
+      "group": "Minor",
+      "place": "3 km NE of Zagreb, Croatia"
+    },
+    {
+      "year": 2000,
+      "lat": 45.481,
+      "long": 14.321,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "5 km NW of Klana, Croatia"
+    },
+    {
+      "year": 2000,
+      "lat": 44.738,
+      "long": 15.148,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "11 km NNW of Popova?a, Croatia"
+    },
+    {
+      "year": 2001,
+      "lat": 45.519,
+      "long": 16.458,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "5 km NNE of Buda�evo, Croatia"
+    },
+    {
+      "year": 2001,
+      "lat": 45.28,
+      "long": 16.26,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "14 km ESE of Glina, Croatia"
+    },
+    {
+      "year": 2002,
+      "lat": 42.663,
+      "long": 15.576,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "59 km SW of Komi�a, Croatia"
+    },
+    {
+      "year": 2002,
+      "lat": 45.54,
+      "long": 16.48,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "8 km NNE of Buda�evo, Croatia"
+    },
+    {
+      "year": 2002,
+      "lat": 43.002,
+      "long": 17.613,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "4 km ESE of Opuzen, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.311,
+      "long": 15.5,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "44 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 45.415,
+      "long": 14.613,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "10 km ENE of Podhum, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 44.281,
+      "long": 15.08,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "2 km S of Vir, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.111,
+      "long": 15.376,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "58 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.469,
+      "long": 15.892,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "8 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.305,
+      "long": 15.191,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "65 km SSW of Murter, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.601,
+      "long": 15.973,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "4 km ENE of Primo�ten, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.177,
+      "long": 15.268,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "68 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.238,
+      "long": 15.347,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "59 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 42.955,
+      "long": 15.204,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "73 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 42.975,
+      "long": 15.289,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "65 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.317,
+      "long": 15.684,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "32 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.407,
+      "long": 15.782,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "20 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.202,
+      "long": 15.234,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "69 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.234,
+      "long": 15.245,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "67 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.336,
+      "long": 15.646,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "33 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.497,
+      "long": 15.989,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "3 km SSE of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.138,
+      "long": 15.363,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "60 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.087,
+      "long": 15.485,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "49 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.22,
+      "long": 15.396,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "57 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.112,
+      "long": 15.247,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "69 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.207,
+      "long": 15.546,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "48 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.57,
+      "long": 15.691,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "18 km W of Primo�ten, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.365,
+      "long": 15.745,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "25 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.26,
+      "long": 15.532,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "46 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.35,
+      "long": 15.714,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "28 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.138,
+      "long": 15.386,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "58 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.124,
+      "long": 15.252,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "69 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.3,
+      "long": 15.61,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "38 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.134,
+      "long": 15.486,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "50 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.18,
+      "long": 15.604,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "42 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.248,
+      "long": 15.187,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "70 km WSW of Primo�ten, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.052,
+      "long": 15.705,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "31 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.117,
+      "long": 15.355,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "60 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.18,
+      "long": 15.728,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "33 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.091,
+      "long": 15.37,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "59 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.117,
+      "long": 15.465,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "51 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.242,
+      "long": 15.37,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "57 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.351,
+      "long": 15.659,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "31 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.177,
+      "long": 15.277,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "68 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.044,
+      "long": 17.112,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "9 km NNW of Kor?ula, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.121,
+      "long": 15.061,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "84 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.412,
+      "long": 15.894,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "13 km SSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.109,
+      "long": 14.988,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "90 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2005,
+      "lat": 45.506,
+      "long": 15.89,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "3 km SE of Lasinja, Croatia"
+    },
+    {
+      "year": 2005,
+      "lat": 45.333,
+      "long": 14.959,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "8 km ENE of Mrkopalj, Croatia"
+    },
+    {
+      "year": 2006,
+      "lat": 42.95,
+      "long": 16.324,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "16 km SE of Vis, Croatia"
+    },
+    {
+      "year": 2006,
+      "lat": 45.361,
+      "long": 15.995,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "7 km WNW of Glina, Croatia"
+    },
+    {
+      "year": 2006,
+      "lat": 43.213,
+      "long": 16.868,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "Croatia region"
+    },
+    {
+      "year": 2007,
+      "lat": 45.75,
+      "long": 17.025,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "1 km W of Veliki Gr?evac, Croatia"
+    },
+    {
+      "year": 2008,
+      "lat": 45.377,
+      "long": 14.348,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "0 km NNW of Kastav, Croatia"
+    },
+    {
+      "year": 2008,
+      "lat": 45.961,
+      "long": 15.835,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "1 km ENE of Luka, Croatia"
+    },
+    {
+      "year": 2017,
+      "lat": 42.6456,
+      "long": 18.1239,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "1 km ENE of Dubrovnik, Croatia"
+    },
+    {
+      "year": 2018,
+      "lat": 42.6819,
+      "long": 18.231,
+      "mag": 2.9,
+      "group": "Minor",
+      "place": "7 km NE of ?iba?a, Croatia"
+    },
+    {
+      "year": 2000,
+      "lat": 45.351,
+      "long": 16.122,
+      "mag": 3,
+      "group": "Minor",
+      "place": "3 km ENE of Glina, Croatia"
+    },
+    {
+      "year": 2000,
+      "lat": 45.135,
+      "long": 14.039,
+      "mag": 3,
+      "group": "Minor",
+      "place": "6 km NW of Vine�, Croatia"
+    },
+    {
+      "year": 2000,
+      "lat": 45.08,
+      "long": 16.31,
+      "mag": 3,
+      "group": "Minor",
+      "place": "Croatia region"
+    },
+    {
+      "year": 2001,
+      "lat": 43.547,
+      "long": 17.03,
+      "mag": 3,
+      "group": "Minor",
+      "place": "7 km NNE of Lovre?, Croatia"
+    },
+    {
+      "year": 2001,
+      "lat": 45.31,
+      "long": 16.53,
+      "mag": 3,
+      "group": "Minor",
+      "place": "7 km SSW of Sunja, Croatia"
+    },
+    {
+      "year": 2001,
+      "lat": 46.214,
+      "long": 16.41,
+      "mag": 3,
+      "group": "Minor",
+      "place": "4 km SSE of Gornji Kneginec, Croatia"
+    },
+    {
+      "year": 2002,
+      "lat": 44.82,
+      "long": 14.93,
+      "mag": 3,
+      "group": "Minor",
+      "place": "13 km NE of Banjol, Croatia"
+    },
+    {
+      "year": 2002,
+      "lat": 44.788,
+      "long": 15.399,
+      "mag": 3,
+      "group": "Minor",
+      "place": "15 km N of Peru�i?, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 44.458,
+      "long": 15.144,
+      "mag": 3,
+      "group": "Minor",
+      "place": "7 km ENE of Pag, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.446,
+      "long": 15.917,
+      "mag": 3,
+      "group": "Minor",
+      "place": "9 km SSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.224,
+      "long": 15.652,
+      "mag": 3,
+      "group": "Minor",
+      "place": "41 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.415,
+      "long": 15.365,
+      "mag": 3,
+      "group": "Minor",
+      "place": "48 km SSW of Murter, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.373,
+      "long": 15.447,
+      "mag": 3,
+      "group": "Minor",
+      "place": "45 km WSW of Primo�ten, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.331,
+      "long": 15.548,
+      "mag": 3,
+      "group": "Minor",
+      "place": "40 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.093,
+      "long": 15.536,
+      "mag": 3,
+      "group": "Minor",
+      "place": "45 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.43,
+      "long": 15.381,
+      "mag": 3,
+      "group": "Minor",
+      "place": "46 km SSW of Murter, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.215,
+      "long": 15.174,
+      "mag": 3,
+      "group": "Minor",
+      "place": "73 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.155,
+      "long": 15.578,
+      "mag": 3,
+      "group": "Minor",
+      "place": "43 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.362,
+      "long": 15.209,
+      "mag": 3,
+      "group": "Minor",
+      "place": "59 km SSW of Murter, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.417,
+      "long": 15.732,
+      "mag": 3,
+      "group": "Minor",
+      "place": "22 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.194,
+      "long": 15.507,
+      "mag": 3,
+      "group": "Minor",
+      "place": "50 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.28,
+      "long": 15.648,
+      "mag": 3,
+      "group": "Minor",
+      "place": "37 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.282,
+      "long": 15.355,
+      "mag": 3,
+      "group": "Minor",
+      "place": "56 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.314,
+      "long": 15.412,
+      "mag": 3,
+      "group": "Minor",
+      "place": "50 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.178,
+      "long": 15.458,
+      "mag": 3,
+      "group": "Minor",
+      "place": "53 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.305,
+      "long": 15.608,
+      "mag": 3,
+      "group": "Minor",
+      "place": "38 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.421,
+      "long": 15.661,
+      "mag": 3,
+      "group": "Minor",
+      "place": "27 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.382,
+      "long": 15.72,
+      "mag": 3,
+      "group": "Minor",
+      "place": "25 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.274,
+      "long": 15.462,
+      "mag": 3,
+      "group": "Minor",
+      "place": "49 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.248,
+      "long": 15.472,
+      "mag": 3,
+      "group": "Minor",
+      "place": "50 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.239,
+      "long": 15.596,
+      "mag": 3,
+      "group": "Minor",
+      "place": "43 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.213,
+      "long": 15.108,
+      "mag": 3,
+      "group": "Minor",
+      "place": "77 km SSW of Murter, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.14,
+      "long": 15.268,
+      "mag": 3,
+      "group": "Minor",
+      "place": "68 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.408,
+      "long": 15.508,
+      "mag": 3,
+      "group": "Minor",
+      "place": "38 km WSW of Primo�ten, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.146,
+      "long": 15.22,
+      "mag": 3,
+      "group": "Minor",
+      "place": "71 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.199,
+      "long": 15.645,
+      "mag": 3,
+      "group": "Minor",
+      "place": "40 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.369,
+      "long": 15.645,
+      "mag": 3,
+      "group": "Minor",
+      "place": "31 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.323,
+      "long": 16.01,
+      "mag": 3,
+      "group": "Minor",
+      "place": "18 km SW of Veliki Drvenik, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.228,
+      "long": 15.506,
+      "mag": 3,
+      "group": "Minor",
+      "place": "50 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.276,
+      "long": 15.865,
+      "mag": 3,
+      "group": "Minor",
+      "place": "28 km SSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.487,
+      "long": 16.084,
+      "mag": 3,
+      "group": "Minor",
+      "place": "3 km SSW of Marina, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.115,
+      "long": 15.439,
+      "mag": 3,
+      "group": "Minor",
+      "place": "53 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.184,
+      "long": 15.27,
+      "mag": 3,
+      "group": "Minor",
+      "place": "68 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.124,
+      "long": 15.332,
+      "mag": 3,
+      "group": "Minor",
+      "place": "62 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.26,
+      "long": 16.117,
+      "mag": 3,
+      "group": "Minor",
+      "place": "21 km S of Veliki Drvenik, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.06,
+      "long": 15.211,
+      "mag": 3,
+      "group": "Minor",
+      "place": "71 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 42.893,
+      "long": 15.518,
+      "mag": 3,
+      "group": "Minor",
+      "place": "49 km WSW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.097,
+      "long": 15.116,
+      "mag": 3,
+      "group": "Minor",
+      "place": "79 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.253,
+      "long": 15.448,
+      "mag": 3,
+      "group": "Minor",
+      "place": "51 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.273,
+      "long": 15.512,
+      "mag": 3,
+      "group": "Minor",
+      "place": "46 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.235,
+      "long": 15.169,
+      "mag": 3,
+      "group": "Minor",
+      "place": "72 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.363,
+      "long": 15.654,
+      "mag": 3,
+      "group": "Minor",
+      "place": "31 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.236,
+      "long": 15.105,
+      "mag": 3,
+      "group": "Minor",
+      "place": "75 km SSW of Murter, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.225,
+      "long": 15.45,
+      "mag": 3,
+      "group": "Minor",
+      "place": "53 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.264,
+      "long": 15.581,
+      "mag": 3,
+      "group": "Minor",
+      "place": "42 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.166,
+      "long": 15.738,
+      "mag": 3,
+      "group": "Minor",
+      "place": "31 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.197,
+      "long": 15.459,
+      "mag": 3,
+      "group": "Minor",
+      "place": "54 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.244,
+      "long": 15.329,
+      "mag": 3,
+      "group": "Minor",
+      "place": "60 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.207,
+      "long": 15.324,
+      "mag": 3,
+      "group": "Minor",
+      "place": "63 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.046,
+      "long": 15.269,
+      "mag": 3,
+      "group": "Minor",
+      "place": "67 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.142,
+      "long": 15.219,
+      "mag": 3,
+      "group": "Minor",
+      "place": "72 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 45.518,
+      "long": 16.196,
+      "mag": 3,
+      "group": "Minor",
+      "place": "7 km S of Lekenik, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 42.673,
+      "long": 15.604,
+      "mag": 3,
+      "group": "Minor",
+      "place": "57 km SW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.18,
+      "long": 15.219,
+      "mag": 3,
+      "group": "Minor",
+      "place": "71 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.156,
+      "long": 15.134,
+      "mag": 3,
+      "group": "Minor",
+      "place": "79 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.153,
+      "long": 15.485,
+      "mag": 3,
+      "group": "Minor",
+      "place": "50 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.177,
+      "long": 15.584,
+      "mag": 3,
+      "group": "Minor",
+      "place": "44 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.141,
+      "long": 15.418,
+      "mag": 3,
+      "group": "Minor",
+      "place": "56 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.021,
+      "long": 15.45,
+      "mag": 3,
+      "group": "Minor",
+      "place": "52 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.093,
+      "long": 15.284,
+      "mag": 3,
+      "group": "Minor",
+      "place": "66 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.171,
+      "long": 15.504,
+      "mag": 3,
+      "group": "Minor",
+      "place": "50 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.172,
+      "long": 15.284,
+      "mag": 3,
+      "group": "Minor",
+      "place": "67 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.164,
+      "long": 15.671,
+      "mag": 3,
+      "group": "Minor",
+      "place": "36 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.242,
+      "long": 15.271,
+      "mag": 3,
+      "group": "Minor",
+      "place": "64 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.2,
+      "long": 14.98,
+      "mag": 3,
+      "group": "Minor",
+      "place": "83 km S of Sali, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.053,
+      "long": 17.45,
+      "mag": 3,
+      "group": "Minor",
+      "place": "7 km W of Komin, Croatia"
+    },
+    {
+      "year": 2005,
+      "lat": 43.146,
+      "long": 15.287,
+      "mag": 3,
+      "group": "Minor",
+      "place": "66 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2006,
+      "lat": 45.239,
+      "long": 14.76,
+      "mag": 3,
+      "group": "Minor",
+      "place": "8 km SSE of Fu�ine, Croatia"
+    },
+    {
+      "year": 2006,
+      "lat": 42.775,
+      "long": 17.702,
+      "mag": 3,
+      "group": "Minor",
+      "place": "7 km S of Ston, Croatia"
+    },
+    {
+      "year": 2006,
+      "lat": 45.514,
+      "long": 16.093,
+      "mag": 3,
+      "group": "Minor",
+      "place": "12 km SW of Lekenik, Croatia"
+    },
+    {
+      "year": 2007,
+      "lat": 45.066,
+      "long": 14.75,
+      "mag": 3,
+      "group": "Minor",
+      "place": "6 km E of Vrbnik, Croatia"
+    },
+    {
+      "year": 2007,
+      "lat": 43.023,
+      "long": 17.229,
+      "mag": 3,
+      "group": "Minor",
+      "place": "6 km NE of Orebi?, Croatia"
+    },
+    {
+      "year": 2008,
+      "lat": 43.222,
+      "long": 15.52,
+      "mag": 3,
+      "group": "Minor",
+      "place": "49 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2008,
+      "lat": 43.493,
+      "long": 16.408,
+      "mag": 3,
+      "group": "Minor",
+      "place": "3 km SW of Split, Croatia"
+    },
+    {
+      "year": 2008,
+      "lat": 43.159,
+      "long": 15.352,
+      "mag": 3,
+      "group": "Minor",
+      "place": "61 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2020,
+      "lat": 45.883,
+      "long": 16.0347,
+      "mag": 3,
+      "group": "Minor",
+      "place": "5 km NNW of Dubrava, Croatia"
+    },
+    {
+      "year": 2020,
+      "lat": 45.8979,
+      "long": 16.0605,
+      "mag": 3,
+      "group": "Minor",
+      "place": "5 km WSW of Ka�ina, Croatia"
+    },
+    {
+      "year": 2020,
+      "lat": 45.9022,
+      "long": 15.9524,
+      "mag": 3,
+      "group": "Minor",
+      "place": "4 km ESE of Gornja Bistra, Croatia"
+    },
+    {
+      "year": 2021,
+      "lat": 45.8625,
+      "long": 16.047,
+      "mag": 3,
+      "group": "Minor",
+      "place": "3 km NNW of Dubrava, Croatia"
+    },
+    {
+      "year": 2022,
+      "lat": 44.0449,
+      "long": 16.1759,
+      "mag": 3,
+      "group": "Minor",
+      "place": "1 km WNW of Knin, Croatia"
+    },
+    {
+      "year": 2001,
+      "lat": 43.161,
+      "long": 17.084,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "12 km S of Tu?epi, Croatia"
+    },
+    {
+      "year": 2001,
+      "lat": 45.226,
+      "long": 14.465,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "7 km WNW of Omi�alj, Croatia"
+    },
+    {
+      "year": 2001,
+      "lat": 43.011,
+      "long": 17.708,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "Croatia-Bosnia and Herzegovina border region"
+    },
+    {
+      "year": 2002,
+      "lat": 46.201,
+      "long": 16.66,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "4 km WNW of Rasinja, Croatia"
+    },
+    {
+      "year": 2002,
+      "lat": 43.43,
+      "long": 17.02,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "4 km NW of Zagvozd, Croatia"
+    },
+    {
+      "year": 2002,
+      "lat": 45.936,
+      "long": 15.986,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "6 km SE of Stubi?ke Toplice, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.071,
+      "long": 17.656,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "1 km NNE of Metkovi?, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.49,
+      "long": 15.513,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "34 km WSW of Primo�ten, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.328,
+      "long": 15.286,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "59 km WSW of Primo�ten, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.158,
+      "long": 15.144,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "78 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 45.243,
+      "long": 14.757,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "7 km SSE of Fu�ine, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.329,
+      "long": 15.354,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "54 km WSW of Primo�ten, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.103,
+      "long": 15.383,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "58 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.12,
+      "long": 15.197,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "73 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.126,
+      "long": 15.406,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "56 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.239,
+      "long": 15.231,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "67 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.416,
+      "long": 15.857,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "15 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.309,
+      "long": 15.471,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "46 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.238,
+      "long": 15.427,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "54 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.204,
+      "long": 15.691,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "37 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.208,
+      "long": 15.272,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "66 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.521,
+      "long": 15.789,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "13 km SW of Primo�ten, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.299,
+      "long": 15.545,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "42 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.322,
+      "long": 15.565,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "39 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.165,
+      "long": 15.493,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "50 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.182,
+      "long": 15.241,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "70 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.194,
+      "long": 15.305,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "65 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.108,
+      "long": 15.193,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "73 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.205,
+      "long": 15.391,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "58 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.326,
+      "long": 15.644,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "34 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.304,
+      "long": 15.651,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "35 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.186,
+      "long": 15.176,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "74 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.098,
+      "long": 15.529,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "46 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.239,
+      "long": 15.484,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "50 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.147,
+      "long": 15.436,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "54 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.155,
+      "long": 15.3,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "65 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.157,
+      "long": 15.235,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "70 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.173,
+      "long": 15.456,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "53 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.254,
+      "long": 15.645,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "39 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.211,
+      "long": 15.34,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "61 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.152,
+      "long": 15.375,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "59 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.263,
+      "long": 15.656,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "38 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.209,
+      "long": 15.354,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "61 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.226,
+      "long": 15.481,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "51 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.238,
+      "long": 15.584,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "44 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.409,
+      "long": 16.207,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "6 km SE of Veliki Drvenik, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.14,
+      "long": 15.48,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "51 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.238,
+      "long": 15.25,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "66 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.207,
+      "long": 15.32,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "63 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 44.964,
+      "long": 14.648,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "5 km SSE of Punat, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.073,
+      "long": 15.205,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "72 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.145,
+      "long": 15.42,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "55 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.139,
+      "long": 15.465,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "52 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.156,
+      "long": 15.404,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "57 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.144,
+      "long": 15.407,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "56 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.112,
+      "long": 15.393,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "57 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 42.944,
+      "long": 15.425,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "55 km WSW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.085,
+      "long": 15.4,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "56 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.134,
+      "long": 15.498,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "49 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.165,
+      "long": 15.477,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "51 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.167,
+      "long": 15.325,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "64 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.193,
+      "long": 15.385,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "59 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.142,
+      "long": 15.433,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "54 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.299,
+      "long": 15.611,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "38 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 45.698,
+      "long": 18.175,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "7 km S of Donji Miholjac, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 42.96,
+      "long": 17.806,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "12 km NNW of Podgora, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.303,
+      "long": 15.177,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "66 km SSW of Murter, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 44.007,
+      "long": 16.011,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "4 km NE of Kistanje, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.237,
+      "long": 15.38,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "57 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2005,
+      "lat": 45.264,
+      "long": 16.979,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "8 km S of Novska, Croatia"
+    },
+    {
+      "year": 2005,
+      "lat": 43.075,
+      "long": 15.357,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "60 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2006,
+      "lat": 43.59,
+      "long": 16.894,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "13 km NNW of Lovre?, Croatia"
+    },
+    {
+      "year": 2007,
+      "lat": 45.62,
+      "long": 15.375,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "Slovenia-Croatia border region"
+    },
+    {
+      "year": 2007,
+      "lat": 43.8,
+      "long": 15.4,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "15 km SW of Pako�tane, Croatia"
+    },
+    {
+      "year": 2007,
+      "lat": 42.582,
+      "long": 16.694,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "26 km SW of Lastovo, Croatia"
+    },
+    {
+      "year": 2007,
+      "lat": 43.056,
+      "long": 15.632,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "37 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2008,
+      "lat": 42.99,
+      "long": 17.453,
+      "mag": 3.1,
+      "group": "Minor",
+      "place": "8 km SW of Komin, Croatia"
+    },
+    {
+      "year": 2000,
+      "lat": 44.158,
+      "long": 15.156,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "5 km NE of Ugljan, Croatia"
+    },
+    {
+      "year": 2000,
+      "lat": 45.805,
+      "long": 16.116,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "2 km S of Sesvete, Croatia"
+    },
+    {
+      "year": 2000,
+      "lat": 45.3,
+      "long": 16.541,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "7 km N of Hrvatska Kostajnica, Croatia"
+    },
+    {
+      "year": 2000,
+      "lat": 45.12,
+      "long": 14.862,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "5 km E of Novi Vinodolski, Croatia"
+    },
+    {
+      "year": 2001,
+      "lat": 43.46,
+      "long": 16.886,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "8 km WSW of Lovre?, Croatia"
+    },
+    {
+      "year": 2001,
+      "lat": 45.439,
+      "long": 14.591,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "10 km ENE of Podhum, Croatia"
+    },
+    {
+      "year": 2002,
+      "lat": 43.953,
+      "long": 16.183,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "9 km S of Knin, Croatia"
+    },
+    {
+      "year": 2002,
+      "lat": 45.262,
+      "long": 14.44,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "7 km S of Rijeka, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 45.924,
+      "long": 16.089,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "3 km WNW of Ka�ina, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 45.051,
+      "long": 14.549,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "3 km NW of Krk, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.92,
+      "long": 16.65,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "17 km N of Hrvace, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.514,
+      "long": 16.189,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "0 km NNE of Seget Vranjica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.099,
+      "long": 15.42,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "55 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.177,
+      "long": 15.395,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "58 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.258,
+      "long": 15.532,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "46 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.22,
+      "long": 15.53,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "49 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.251,
+      "long": 15.701,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "37 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.312,
+      "long": 15.858,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "25 km SSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.172,
+      "long": 15.541,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "47 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.161,
+      "long": 15.507,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "49 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.196,
+      "long": 15.335,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "63 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.267,
+      "long": 15.333,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "59 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.187,
+      "long": 15.221,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "71 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.176,
+      "long": 15.307,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "65 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.395,
+      "long": 15.978,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "14 km S of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.369,
+      "long": 15.445,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "45 km WSW of Primo�ten, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.191,
+      "long": 15.516,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "49 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.078,
+      "long": 15.318,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "63 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.156,
+      "long": 15.471,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "52 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.145,
+      "long": 15.405,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "57 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.183,
+      "long": 15.352,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "62 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.276,
+      "long": 15.669,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "36 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.339,
+      "long": 15.678,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "31 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.155,
+      "long": 15.654,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "37 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 42.972,
+      "long": 15.476,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "50 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.225,
+      "long": 15.346,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "60 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.169,
+      "long": 15.402,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "57 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.176,
+      "long": 15.613,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "41 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.083,
+      "long": 15.48,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "50 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.148,
+      "long": 15.497,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "49 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.194,
+      "long": 15.376,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "60 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.165,
+      "long": 15.404,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "57 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.107,
+      "long": 15.185,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "74 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.303,
+      "long": 15.207,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "65 km SSW of Murter, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.236,
+      "long": 15.324,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "61 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.461,
+      "long": 14.834,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "59 km SSW of Sali, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.517,
+      "long": 16.116,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "0 km ENE of Marina, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.271,
+      "long": 15.496,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "47 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.297,
+      "long": 15.173,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "67 km SSW of Murter, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 45.223,
+      "long": 14.917,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "11 km SSE of Mrkopalj, Croatia"
+    },
+    {
+      "year": 2005,
+      "lat": 43.787,
+      "long": 16.138,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "8 km S of Drni�, Croatia"
+    },
+    {
+      "year": 2005,
+      "lat": 43.01,
+      "long": 17.772,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "11 km ESE of Metkovi?, Croatia"
+    },
+    {
+      "year": 2005,
+      "lat": 43.154,
+      "long": 15.403,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "57 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2006,
+      "lat": 44.097,
+      "long": 15.574,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "6 km SW of Gornji Karin, Croatia"
+    },
+    {
+      "year": 2006,
+      "lat": 44.483,
+      "long": 15.364,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "7 km S of Gospi?, Croatia"
+    },
+    {
+      "year": 2006,
+      "lat": 45.708,
+      "long": 15.595,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "6 km NW of Jastrebarsko, Croatia"
+    },
+    {
+      "year": 2006,
+      "lat": 42.899,
+      "long": 16.269,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "19 km SSE of Vis, Croatia"
+    },
+    {
+      "year": 2007,
+      "lat": 44.159,
+      "long": 15.666,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "2 km SSE of Kru�evo, Croatia"
+    },
+    {
+      "year": 2007,
+      "lat": 45.306,
+      "long": 14.561,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "0 km SE of Krasica, Croatia"
+    },
+    {
+      "year": 2020,
+      "lat": 45.5723,
+      "long": 17.9952,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "3 km ESE of Zdenci, Croatia"
+    },
+    {
+      "year": 2020,
+      "lat": 45.864,
+      "long": 16.0358,
+      "mag": 3.2,
+      "group": "Minor",
+      "place": "4 km NNW of Dubrava, Croatia"
+    },
+    {
+      "year": 2000,
+      "lat": 45.571,
+      "long": 16.673,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "2 km N of Voloder, Croatia"
+    },
+    {
+      "year": 2000,
+      "lat": 43.518,
+      "long": 16.001,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "2 km ESE of Rogoznica, Croatia"
+    },
+    {
+      "year": 2000,
+      "lat": 43.995,
+      "long": 15.164,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "6 km N of Sali, Croatia"
+    },
+    {
+      "year": 2001,
+      "lat": 43.039,
+      "long": 17.158,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "7 km NNW of Orebi?, Croatia"
+    },
+    {
+      "year": 2001,
+      "lat": 45.265,
+      "long": 16.196,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "11 km SE of Glina, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.485,
+      "long": 16.055,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "5 km SW of Marina, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.147,
+      "long": 15.613,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "40 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.71,
+      "long": 16.691,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "2 km W of Gala, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.175,
+      "long": 15.548,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "46 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.248,
+      "long": 15.307,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "61 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.646,
+      "long": 16.235,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "4 km N of Prgomet, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 44.477,
+      "long": 13.415,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "55 km SW of Pula, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.349,
+      "long": 15.655,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "32 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.224,
+      "long": 15.407,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "56 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.149,
+      "long": 15.47,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "52 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.218,
+      "long": 15.401,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "57 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.299,
+      "long": 15.572,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "40 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.371,
+      "long": 14.739,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "71 km SSW of Sali, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.237,
+      "long": 15.52,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "48 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.208,
+      "long": 15.286,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "65 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.173,
+      "long": 15.406,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "57 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.141,
+      "long": 15.278,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "67 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.205,
+      "long": 15.39,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "58 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.188,
+      "long": 15.447,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "54 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.182,
+      "long": 15.346,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "62 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.187,
+      "long": 15.193,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "73 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.174,
+      "long": 15.317,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "64 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.154,
+      "long": 15.298,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "65 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.121,
+      "long": 15.197,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "73 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.217,
+      "long": 15.663,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "39 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.161,
+      "long": 15.368,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "60 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.089,
+      "long": 15.276,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "66 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.194,
+      "long": 15.482,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "52 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.153,
+      "long": 15.392,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "58 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.2,
+      "long": 15.455,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "54 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.176,
+      "long": 15.441,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "55 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.341,
+      "long": 15.607,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "35 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.184,
+      "long": 15.581,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "44 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.135,
+      "long": 15.595,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "41 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.225,
+      "long": 15.479,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "51 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 42.938,
+      "long": 15.774,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "28 km WSW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.165,
+      "long": 15.497,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "50 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.265,
+      "long": 15.634,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "39 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.268,
+      "long": 15.574,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "42 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.188,
+      "long": 15.424,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "56 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.071,
+      "long": 15.338,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "61 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.143,
+      "long": 15.456,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "53 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.051,
+      "long": 15.382,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "57 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.11,
+      "long": 15.218,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "71 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.014,
+      "long": 17.773,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "11 km ESE of Metkovi?, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.538,
+      "long": 15.692,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "19 km WSW of Primo�ten, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.555,
+      "long": 15.432,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "32 km SSW of Murter, Croatia"
+    },
+    {
+      "year": 2005,
+      "lat": 46.134,
+      "long": 16.461,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "7 km ESE of Ljube�?ica, Croatia"
+    },
+    {
+      "year": 2005,
+      "lat": 43.234,
+      "long": 15.164,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "72 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2006,
+      "lat": 42.827,
+      "long": 15.983,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "25 km SSW of Komi�a, Croatia"
+    },
+    {
+      "year": 2007,
+      "lat": 43.59,
+      "long": 15.67,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "19 km SSW of Tribunj, Croatia"
+    },
+    {
+      "year": 2007,
+      "lat": 43.8,
+      "long": 15.4,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "15 km SW of Pako�tane, Croatia"
+    },
+    {
+      "year": 2008,
+      "lat": 45.281,
+      "long": 14.46,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "5 km SSE of Rijeka, Croatia"
+    },
+    {
+      "year": 2008,
+      "lat": 43.555,
+      "long": 17.035,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "8 km NNE of Lovre?, Croatia"
+    },
+    {
+      "year": 2016,
+      "lat": 44.9427,
+      "long": 15.2805,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "8 km NNE of Oto?ac, Croatia"
+    },
+    {
+      "year": 2020,
+      "lat": 45.9294,
+      "long": 16.2006,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "6 km ENE of Ka�ina, Croatia"
+    },
+    {
+      "year": 2021,
+      "lat": 42.8839,
+      "long": 17.8958,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "6 km NE of Podgora, Croatia"
+    },
+    {
+      "year": 2021,
+      "lat": 45.4625,
+      "long": 16.28,
+      "mag": 3.3,
+      "group": "Minor",
+      "place": "2 km NNW of Petrinja, Croatia"
+    },
+    {
+      "year": 2000,
+      "lat": 42.85,
+      "long": 17.633,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "5 km WNW of Ston, Croatia"
+    },
+    {
+      "year": 2002,
+      "lat": 43.398,
+      "long": 16.437,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "8 km N of Milna, Croatia"
+    },
+    {
+      "year": 2002,
+      "lat": 43.9,
+      "long": 16.4,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "20 km ENE of Drni�, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 45.842,
+      "long": 17.202,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "11 km ENE of Velika Pisanica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.155,
+      "long": 15.417,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "56 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 42.934,
+      "long": 15.405,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "57 km WSW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.363,
+      "long": 15.533,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "39 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.089,
+      "long": 15.306,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "64 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.15,
+      "long": 15.297,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "65 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.242,
+      "long": 15.287,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "63 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.38,
+      "long": 15.562,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "36 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.238,
+      "long": 15.361,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "58 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.193,
+      "long": 15.496,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "51 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 46.005,
+      "long": 15.846,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "5 km W of Oroslavje, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.301,
+      "long": 15.402,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "52 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.152,
+      "long": 15.218,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "72 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.183,
+      "long": 15.449,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "54 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.174,
+      "long": 15.383,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "59 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.331,
+      "long": 15.901,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "22 km SSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.177,
+      "long": 15.387,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "59 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.25,
+      "long": 15.825,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "31 km NW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.188,
+      "long": 15.544,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "47 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.191,
+      "long": 15.496,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "51 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.214,
+      "long": 15.578,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "46 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.191,
+      "long": 15.373,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "60 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.184,
+      "long": 15.493,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "51 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.177,
+      "long": 15.373,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "60 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.211,
+      "long": 15.393,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "58 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.199,
+      "long": 15.452,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "54 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.129,
+      "long": 15.35,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "61 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.17,
+      "long": 15.332,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "63 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.162,
+      "long": 15.509,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "49 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.338,
+      "long": 15.493,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "43 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.187,
+      "long": 15.459,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "54 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.429,
+      "long": 15.969,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "10 km S of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.172,
+      "long": 15.124,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "78 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.234,
+      "long": 15.552,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "46 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 44.943,
+      "long": 14.876,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "5 km SSW of Senj, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.145,
+      "long": 15.371,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "59 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.176,
+      "long": 14.978,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "86 km S of Sali, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.104,
+      "long": 15.47,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "51 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.182,
+      "long": 15.675,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "37 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.136,
+      "long": 15.54,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "46 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.036,
+      "long": 15.433,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "53 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.225,
+      "long": 15.249,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "67 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.266,
+      "long": 15.475,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "49 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 44.961,
+      "long": 14.931,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "3 km SSE of Senj, Croatia"
+    },
+    {
+      "year": 2005,
+      "lat": 46.089,
+      "long": 16.487,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "8 km NNW of Kri�evci, Croatia"
+    },
+    {
+      "year": 2005,
+      "lat": 46.152,
+      "long": 16.517,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "10 km E of Ljube�?ica, Croatia"
+    },
+    {
+      "year": 2005,
+      "lat": 45.284,
+      "long": 14.559,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "1 km NNW of Kraljevica, Croatia"
+    },
+    {
+      "year": 2006,
+      "lat": 43.233,
+      "long": 16.6,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "5 km N of Stari Grad, Croatia"
+    },
+    {
+      "year": 2006,
+      "lat": 42.703,
+      "long": 16.919,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "7 km SSE of Lastovo, Croatia"
+    },
+    {
+      "year": 2007,
+      "lat": 42.61,
+      "long": 16.46,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "39 km WSW of Lastovo, Croatia"
+    },
+    {
+      "year": 2020,
+      "lat": 45.8994,
+      "long": 15.9932,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "7 km ESE of Gornja Bistra, Croatia"
+    },
+    {
+      "year": 2021,
+      "lat": 45.4512,
+      "long": 16.2853,
+      "mag": 3.4,
+      "group": "Minor",
+      "place": "1 km NNW of Petrinja, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.85,
+      "long": 15.341,
+      "mag": 3.5,
+      "group": "Minor",
+      "place": "13 km SW of Biograd na Moru, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.211,
+      "long": 15.378,
+      "mag": 3.5,
+      "group": "Minor",
+      "place": "59 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.167,
+      "long": 15.424,
+      "mag": 3.5,
+      "group": "Minor",
+      "place": "56 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.171,
+      "long": 15.504,
+      "mag": 3.5,
+      "group": "Minor",
+      "place": "50 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.218,
+      "long": 15.415,
+      "mag": 3.5,
+      "group": "Minor",
+      "place": "56 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.054,
+      "long": 15.164,
+      "mag": 3.5,
+      "group": "Minor",
+      "place": "75 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.209,
+      "long": 15.46,
+      "mag": 3.5,
+      "group": "Minor",
+      "place": "54 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.345,
+      "long": 15.871,
+      "mag": 3.5,
+      "group": "Minor",
+      "place": "21 km SSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.486,
+      "long": 15.882,
+      "mag": 3.5,
+      "group": "Minor",
+      "place": "8 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.188,
+      "long": 15.452,
+      "mag": 3.5,
+      "group": "Minor",
+      "place": "54 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.233,
+      "long": 15.421,
+      "mag": 3.5,
+      "group": "Minor",
+      "place": "55 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.343,
+      "long": 15.597,
+      "mag": 3.5,
+      "group": "Minor",
+      "place": "36 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.285,
+      "long": 15.711,
+      "mag": 3.5,
+      "group": "Minor",
+      "place": "33 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.15,
+      "long": 15.287,
+      "mag": 3.5,
+      "group": "Minor",
+      "place": "66 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.122,
+      "long": 15.372,
+      "mag": 3.5,
+      "group": "Minor",
+      "place": "59 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.175,
+      "long": 15.484,
+      "mag": 3.5,
+      "group": "Minor",
+      "place": "51 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.097,
+      "long": 15.518,
+      "mag": 3.5,
+      "group": "Minor",
+      "place": "47 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.201,
+      "long": 15.676,
+      "mag": 3.5,
+      "group": "Minor",
+      "place": "38 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 44.84,
+      "long": 14.972,
+      "mag": 3.5,
+      "group": "Minor",
+      "place": "17 km SSE of Senj, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.019,
+      "long": 17.323,
+      "mag": 3.5,
+      "group": "Minor",
+      "place": "12 km ENE of Orebi?, Croatia"
+    },
+    {
+      "year": 2005,
+      "lat": 43.031,
+      "long": 17.741,
+      "mag": 3.5,
+      "group": "Minor",
+      "place": "7 km ESE of Metkovi?, Croatia"
+    },
+    {
+      "year": 2005,
+      "lat": 42.81,
+      "long": 17.82,
+      "mag": 3.5,
+      "group": "Minor",
+      "place": "4 km SSW of Podgora, Croatia"
+    },
+    {
+      "year": 2005,
+      "lat": 43.17,
+      "long": 15.166,
+      "mag": 3.5,
+      "group": "Minor",
+      "place": "76 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2005,
+      "lat": 43.452,
+      "long": 15.855,
+      "mag": 3.5,
+      "group": "Minor",
+      "place": "12 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2006,
+      "lat": 43.021,
+      "long": 17.67,
+      "mag": 3.5,
+      "group": "Minor",
+      "place": "4 km SSE of Metkovi?, Croatia"
+    },
+    {
+      "year": 2006,
+      "lat": 42.911,
+      "long": 16.037,
+      "mag": 3.5,
+      "group": "Minor",
+      "place": "15 km SSW of Komi�a, Croatia"
+    },
+    {
+      "year": 2007,
+      "lat": 43.778,
+      "long": 15.192,
+      "mag": 3.5,
+      "group": "Minor",
+      "place": "18 km S of Sali, Croatia"
+    },
+    {
+      "year": 2008,
+      "lat": 45.669,
+      "long": 15.929,
+      "mag": 3.5,
+      "group": "Minor",
+      "place": "4 km SSE of Strmec, Croatia"
+    },
+    {
+      "year": 2012,
+      "lat": 42.954,
+      "long": 17.836,
+      "mag": 3.5,
+      "group": "Minor",
+      "place": "11 km N of Podgora, Croatia"
+    },
+    {
+      "year": 2020,
+      "lat": 45.2017,
+      "long": 14.7263,
+      "mag": 3.5,
+      "group": "Minor",
+      "place": "3 km NE of Crikvenica, Croatia"
+    },
+    {
+      "year": 2000,
+      "lat": 43.601,
+      "long": 16.249,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "1 km ESE of Prgomet, Croatia"
+    },
+    {
+      "year": 2000,
+      "lat": 44.209,
+      "long": 15.466,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "0 km WSW of Posedarje, Croatia"
+    },
+    {
+      "year": 2001,
+      "lat": 42.761,
+      "long": 18.067,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "9 km NNW of Moko�ica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 42.997,
+      "long": 17.574,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "2 km SSE of Opuzen, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.267,
+      "long": 15.303,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "61 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.169,
+      "long": 15.163,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "76 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 44.358,
+      "long": 15.308,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "9 km NNW of Ra�anac, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.217,
+      "long": 15.348,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "60 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.181,
+      "long": 15.112,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "79 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.139,
+      "long": 15.334,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "62 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.18,
+      "long": 15.409,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "57 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.244,
+      "long": 15.502,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "49 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.293,
+      "long": 15.457,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "48 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.176,
+      "long": 15.343,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "62 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.207,
+      "long": 15.387,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "58 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.258,
+      "long": 15.491,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "48 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.405,
+      "long": 15.905,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "14 km SSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 42.825,
+      "long": 15.337,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "66 km WSW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.229,
+      "long": 15.539,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "47 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.119,
+      "long": 15.444,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "53 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.156,
+      "long": 15.452,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "53 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.16,
+      "long": 15.398,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "58 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.182,
+      "long": 15.503,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "50 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.177,
+      "long": 15.477,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "52 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.152,
+      "long": 15.434,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "55 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.166,
+      "long": 15.317,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "64 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.242,
+      "long": 15.466,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "51 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.19,
+      "long": 15.44,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "55 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.11,
+      "long": 15.205,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "72 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.116,
+      "long": 15.456,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "52 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.113,
+      "long": 15.533,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "46 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.134,
+      "long": 15.539,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "46 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.294,
+      "long": 15.727,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "32 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 45.032,
+      "long": 14.829,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "Slovenia-Croatia border region"
+    },
+    {
+      "year": 2005,
+      "lat": 43.15,
+      "long": 15.523,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "47 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2005,
+      "lat": 43.118,
+      "long": 14.986,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "90 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2006,
+      "lat": 43.9,
+      "long": 16.472,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "19 km NW of Hrvace, Croatia"
+    },
+    {
+      "year": 2008,
+      "lat": 44.51,
+      "long": 13.648,
+      "mag": 3.6,
+      "group": "Minor",
+      "place": "41 km SSW of Medulin, Croatia"
+    },
+    {
+      "year": 2001,
+      "lat": 45.28,
+      "long": 17.92,
+      "mag": 3.7,
+      "group": "Minor",
+      "place": "8 km E of Pleternica, Croatia"
+    },
+    {
+      "year": 2002,
+      "lat": 45.726,
+      "long": 15.751,
+      "mag": 3.7,
+      "group": "Minor",
+      "place": "3 km WSW of Rakov Potok, Croatia"
+    },
+    {
+      "year": 2002,
+      "lat": 44.79,
+      "long": 15.02,
+      "mag": 3.7,
+      "group": "Minor",
+      "place": "19 km ENE of Banjol, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 42.961,
+      "long": 17.544,
+      "mag": 3.7,
+      "group": "Minor",
+      "place": "6 km SSW of Opuzen, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.154,
+      "long": 15.523,
+      "mag": 3.7,
+      "group": "Minor",
+      "place": "48 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 44.26,
+      "long": 15.256,
+      "mag": 3.7,
+      "group": "Minor",
+      "place": "1 km ESE of Vrsi, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.114,
+      "long": 15.234,
+      "mag": 3.7,
+      "group": "Minor",
+      "place": "70 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.194,
+      "long": 15.325,
+      "mag": 3.7,
+      "group": "Minor",
+      "place": "63 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.179,
+      "long": 15.482,
+      "mag": 3.7,
+      "group": "Minor",
+      "place": "51 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.275,
+      "long": 15.582,
+      "mag": 3.7,
+      "group": "Minor",
+      "place": "41 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.202,
+      "long": 15.229,
+      "mag": 3.7,
+      "group": "Minor",
+      "place": "69 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.125,
+      "long": 15.467,
+      "mag": 3.7,
+      "group": "Minor",
+      "place": "51 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.336,
+      "long": 15.646,
+      "mag": 3.7,
+      "group": "Minor",
+      "place": "33 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.196,
+      "long": 15.342,
+      "mag": 3.7,
+      "group": "Minor",
+      "place": "62 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.304,
+      "long": 15.494,
+      "mag": 3.7,
+      "group": "Minor",
+      "place": "45 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.182,
+      "long": 15.496,
+      "mag": 3.7,
+      "group": "Minor",
+      "place": "50 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.2,
+      "long": 15.477,
+      "mag": 3.7,
+      "group": "Minor",
+      "place": "53 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.08,
+      "long": 15.295,
+      "mag": 3.7,
+      "group": "Minor",
+      "place": "65 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.088,
+      "long": 15.471,
+      "mag": 3.7,
+      "group": "Minor",
+      "place": "50 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.198,
+      "long": 15.37,
+      "mag": 3.7,
+      "group": "Minor",
+      "place": "60 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.219,
+      "long": 15.482,
+      "mag": 3.7,
+      "group": "Minor",
+      "place": "52 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.192,
+      "long": 15.437,
+      "mag": 3.7,
+      "group": "Minor",
+      "place": "55 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.387,
+      "long": 15.825,
+      "mag": 3.7,
+      "group": "Minor",
+      "place": "19 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.188,
+      "long": 15.405,
+      "mag": 3.7,
+      "group": "Minor",
+      "place": "58 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.179,
+      "long": 15.084,
+      "mag": 3.7,
+      "group": "Minor",
+      "place": "81 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.073,
+      "long": 15.293,
+      "mag": 3.7,
+      "group": "Minor",
+      "place": "65 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.266,
+      "long": 15.643,
+      "mag": 3.7,
+      "group": "Minor",
+      "place": "39 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.144,
+      "long": 15.551,
+      "mag": 3.7,
+      "group": "Minor",
+      "place": "45 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.285,
+      "long": 15.445,
+      "mag": 3.7,
+      "group": "Minor",
+      "place": "50 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.216,
+      "long": 15.307,
+      "mag": 3.7,
+      "group": "Minor",
+      "place": "63 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.172,
+      "long": 15.494,
+      "mag": 3.7,
+      "group": "Minor",
+      "place": "50 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 42.995,
+      "long": 17.777,
+      "mag": 3.7,
+      "group": "Minor",
+      "place": "12 km ESE of Metkovi?, Croatia"
+    },
+    {
+      "year": 2006,
+      "lat": 45.735,
+      "long": 15.789,
+      "mag": 3.7,
+      "group": "Minor",
+      "place": "0 km WSW of Rakov Potok, Croatia"
+    },
+    {
+      "year": 2008,
+      "lat": 42.8,
+      "long": 16.3,
+      "mag": 3.7,
+      "group": "Minor",
+      "place": "30 km SSE of Vis, Croatia"
+    },
+    {
+      "year": 2008,
+      "lat": 43.763,
+      "long": 15.367,
+      "mag": 3.7,
+      "group": "Minor",
+      "place": "19 km WSW of Murter, Croatia"
+    },
+    {
+      "year": 2020,
+      "lat": 45.5277,
+      "long": 16.1641,
+      "mag": 3.7,
+      "group": "Minor",
+      "place": "7 km SSW of Lekenik, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.146,
+      "long": 15.228,
+      "mag": 3.8,
+      "group": "Minor",
+      "place": "71 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.185,
+      "long": 15.222,
+      "mag": 3.8,
+      "group": "Minor",
+      "place": "71 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.118,
+      "long": 15.333,
+      "mag": 3.8,
+      "group": "Minor",
+      "place": "62 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.324,
+      "long": 15.551,
+      "mag": 3.8,
+      "group": "Minor",
+      "place": "40 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.196,
+      "long": 15.427,
+      "mag": 3.8,
+      "group": "Minor",
+      "place": "56 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.135,
+      "long": 15.386,
+      "mag": 3.8,
+      "group": "Minor",
+      "place": "58 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.109,
+      "long": 15.415,
+      "mag": 3.8,
+      "group": "Minor",
+      "place": "55 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.275,
+      "long": 15.622,
+      "mag": 3.8,
+      "group": "Minor",
+      "place": "39 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.11,
+      "long": 15.61,
+      "mag": 3.8,
+      "group": "Minor",
+      "place": "40 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.184,
+      "long": 15.351,
+      "mag": 3.8,
+      "group": "Minor",
+      "place": "62 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.198,
+      "long": 15.447,
+      "mag": 3.8,
+      "group": "Minor",
+      "place": "55 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.427,
+      "long": 15.844,
+      "mag": 3.8,
+      "group": "Minor",
+      "place": "14 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.308,
+      "long": 15.93,
+      "mag": 3.8,
+      "group": "Minor",
+      "place": "23 km SW of Veliki Drvenik, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.185,
+      "long": 15.561,
+      "mag": 3.8,
+      "group": "Minor",
+      "place": "46 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2005,
+      "lat": 43.145,
+      "long": 15.298,
+      "mag": 3.8,
+      "group": "Minor",
+      "place": "65 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2006,
+      "lat": 44.2,
+      "long": 15.9,
+      "mag": 3.8,
+      "group": "Minor",
+      "place": "11 km SSE of Gra?ac, Croatia"
+    },
+    {
+      "year": 2007,
+      "lat": 44.02,
+      "long": 14.898,
+      "mag": 3.8,
+      "group": "Minor",
+      "place": "20 km SW of Ugljan, Croatia"
+    },
+    {
+      "year": 2021,
+      "lat": 45.4703,
+      "long": 16.2109,
+      "mag": 3.8,
+      "group": "Minor",
+      "place": "7 km WNW of Petrinja, Croatia"
+    },
+    {
+      "year": 2000,
+      "lat": 43.467,
+      "long": 17.262,
+      "mag": 3.9,
+      "group": "Minor",
+      "place": "2 km NE of Donji Vinjani, Croatia"
+    },
+    {
+      "year": 2000,
+      "lat": 44.19,
+      "long": 15.481,
+      "mag": 3.9,
+      "group": "Minor",
+      "place": "2 km S of Posedarje, Croatia"
+    },
+    {
+      "year": 2001,
+      "lat": 43.108,
+      "long": 17.121,
+      "mag": 3.9,
+      "group": "Minor",
+      "place": "15 km NNW of Orebi?, Croatia"
+    },
+    {
+      "year": 2002,
+      "lat": 46.154,
+      "long": 16.618,
+      "mag": 3.9,
+      "group": "Minor",
+      "place": "7 km WSW of Rasinja, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.148,
+      "long": 15.426,
+      "mag": 3.9,
+      "group": "Minor",
+      "place": "55 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.145,
+      "long": 15.301,
+      "mag": 3.9,
+      "group": "Minor",
+      "place": "65 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.194,
+      "long": 15.469,
+      "mag": 3.9,
+      "group": "Minor",
+      "place": "53 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.124,
+      "long": 15.495,
+      "mag": 3.9,
+      "group": "Minor",
+      "place": "49 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.139,
+      "long": 15.366,
+      "mag": 3.9,
+      "group": "Minor",
+      "place": "60 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.138,
+      "long": 15.344,
+      "mag": 3.9,
+      "group": "Minor",
+      "place": "61 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.268,
+      "long": 15.556,
+      "mag": 3.9,
+      "group": "Minor",
+      "place": "44 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.303,
+      "long": 15.554,
+      "mag": 3.9,
+      "group": "Minor",
+      "place": "41 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.175,
+      "long": 15.334,
+      "mag": 3.9,
+      "group": "Minor",
+      "place": "63 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.332,
+      "long": 15.576,
+      "mag": 3.9,
+      "group": "Minor",
+      "place": "38 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2007,
+      "lat": 43.482,
+      "long": 17.24,
+      "mag": 3.9,
+      "group": "Minor",
+      "place": "3 km ESE of Grabovci, Croatia"
+    },
+    {
+      "year": 2007,
+      "lat": 45.145,
+      "long": 13.376,
+      "mag": 3.9,
+      "group": "Minor",
+      "place": "18 km W of Vrsar, Croatia"
+    },
+    {
+      "year": 2021,
+      "lat": 45.4812,
+      "long": 16.2324,
+      "mag": 3.9,
+      "group": "Minor",
+      "place": "6 km NW of Petrinja, Croatia"
+    },
+    {
+      "year": 2000,
+      "lat": 45.145,
+      "long": 14.841,
+      "mag": 4,
+      "group": "Light",
+      "place": "4 km ENE of Novi Vinodolski, Croatia"
+    },
+    {
+      "year": 2000,
+      "lat": 45.058,
+      "long": 13.316,
+      "mag": 4,
+      "group": "Light",
+      "place": "24 km WSW of Vrsar, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.248,
+      "long": 15.571,
+      "mag": 4,
+      "group": "Light",
+      "place": "44 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.195,
+      "long": 15.231,
+      "mag": 4,
+      "group": "Light",
+      "place": "70 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.173,
+      "long": 15.373,
+      "mag": 4,
+      "group": "Light",
+      "place": "60 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.196,
+      "long": 15.331,
+      "mag": 4,
+      "group": "Light",
+      "place": "63 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.145,
+      "long": 15.38,
+      "mag": 4,
+      "group": "Light",
+      "place": "59 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.3,
+      "long": 15.639,
+      "mag": 4,
+      "group": "Light",
+      "place": "36 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.263,
+      "long": 15.433,
+      "mag": 4,
+      "group": "Light",
+      "place": "52 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.179,
+      "long": 15.492,
+      "mag": 4,
+      "group": "Light",
+      "place": "51 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2005,
+      "lat": 43.399,
+      "long": 16.521,
+      "mag": 4,
+      "group": "Light",
+      "place": "2 km NW of Supetar, Croatia"
+    },
+    {
+      "year": 2006,
+      "lat": 42.717,
+      "long": 17.716,
+      "mag": 4,
+      "group": "Light",
+      "place": "13 km S of Ston, Croatia"
+    },
+    {
+      "year": 2008,
+      "lat": 45.295,
+      "long": 18.378,
+      "mag": 4,
+      "group": "Light",
+      "place": "2 km WSW of ?akovo, Croatia"
+    },
+    {
+      "year": 2011,
+      "lat": 45.003,
+      "long": 15.031,
+      "mag": 4,
+      "group": "Light",
+      "place": "8 km W of Brinje, Croatia"
+    },
+    {
+      "year": 2013,
+      "lat": 43.686,
+      "long": 16.398,
+      "mag": 4,
+      "group": "Light",
+      "place": "14 km N of Ka�tel Luk�i?, Croatia"
+    },
+    {
+      "year": 2015,
+      "lat": 42.767,
+      "long": 17.93,
+      "mag": 4,
+      "group": "Light",
+      "place": "11 km SE of Podgora, Croatia"
+    },
+    {
+      "year": 2017,
+      "lat": 45.203,
+      "long": 14.6055,
+      "mag": 4,
+      "group": "Light",
+      "place": "3 km SSW of Jadranovo, Croatia"
+    },
+    {
+      "year": 2020,
+      "lat": 44.2016,
+      "long": 15.9793,
+      "mag": 4,
+      "group": "Light",
+      "place": "15 km SE of Gra?ac, Croatia"
+    },
+    {
+      "year": 2020,
+      "lat": 44.2152,
+      "long": 16.0571,
+      "mag": 4,
+      "group": "Light",
+      "place": "19 km ESE of Gra?ac, Croatia"
+    },
+    {
+      "year": 2021,
+      "lat": 45.4828,
+      "long": 16.2423,
+      "mag": 4,
+      "group": "Light",
+      "place": "6 km NW of Petrinja, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.027,
+      "long": 17.682,
+      "mag": 4.1,
+      "group": "Light",
+      "place": "4 km SE of Metkovi?, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.118,
+      "long": 15.372,
+      "mag": 4.1,
+      "group": "Light",
+      "place": "59 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.165,
+      "long": 15.415,
+      "mag": 4.1,
+      "group": "Light",
+      "place": "56 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.222,
+      "long": 15.495,
+      "mag": 4.1,
+      "group": "Light",
+      "place": "51 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.151,
+      "long": 15.397,
+      "mag": 4.1,
+      "group": "Light",
+      "place": "57 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.185,
+      "long": 15.49,
+      "mag": 4.1,
+      "group": "Light",
+      "place": "51 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.133,
+      "long": 15.394,
+      "mag": 4.1,
+      "group": "Light",
+      "place": "57 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.197,
+      "long": 15.281,
+      "mag": 4.1,
+      "group": "Light",
+      "place": "66 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.253,
+      "long": 15.269,
+      "mag": 4.1,
+      "group": "Light",
+      "place": "64 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.174,
+      "long": 15.497,
+      "mag": 4.1,
+      "group": "Light",
+      "place": "50 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.198,
+      "long": 15.551,
+      "mag": 4.1,
+      "group": "Light",
+      "place": "47 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.114,
+      "long": 15.431,
+      "mag": 4.1,
+      "group": "Light",
+      "place": "54 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.229,
+      "long": 15.284,
+      "mag": 4.1,
+      "group": "Light",
+      "place": "64 km WSW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.215,
+      "long": 15.344,
+      "mag": 4.1,
+      "group": "Light",
+      "place": "61 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.857,
+      "long": 16.535,
+      "mag": 4.1,
+      "group": "Light",
+      "place": "12 km NNW of Hrvace, Croatia"
+    },
+    {
+      "year": 2007,
+      "lat": 43.11,
+      "long": 15.131,
+      "mag": 4.1,
+      "group": "Light",
+      "place": "78 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2013,
+      "lat": 43.62,
+      "long": 16.377,
+      "mag": 4.1,
+      "group": "Light",
+      "place": "7 km N of Ka�tel Luk�i?, Croatia"
+    },
+    {
+      "year": 2018,
+      "lat": 43.4875,
+      "long": 17.1967,
+      "mag": 4.1,
+      "group": "Light",
+      "place": "0 km SSW of Grabovci, Croatia"
+    },
+    {
+      "year": 2021,
+      "lat": 45.4702,
+      "long": 16.3163,
+      "mag": 4.1,
+      "group": "Light",
+      "place": "4 km NNE of Petrinja, Croatia"
+    },
+    {
+      "year": 2000,
+      "lat": 45.921,
+      "long": 15.941,
+      "mag": 4.2,
+      "group": "Light",
+      "place": "3 km E of Gornja Bistra, Croatia"
+    },
+    {
+      "year": 2002,
+      "lat": 43.46,
+      "long": 17.04,
+      "mag": 4.2,
+      "group": "Light",
+      "place": "5 km SE of Lovre?, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.143,
+      "long": 15.438,
+      "mag": 4.2,
+      "group": "Light",
+      "place": "54 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.138,
+      "long": 15.375,
+      "mag": 4.2,
+      "group": "Light",
+      "place": "59 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.157,
+      "long": 15.257,
+      "mag": 4.2,
+      "group": "Light",
+      "place": "69 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.127,
+      "long": 15.466,
+      "mag": 4.2,
+      "group": "Light",
+      "place": "51 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.281,
+      "long": 15.541,
+      "mag": 4.2,
+      "group": "Light",
+      "place": "44 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.17,
+      "long": 15.434,
+      "mag": 4.2,
+      "group": "Light",
+      "place": "55 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.237,
+      "long": 15.632,
+      "mag": 4.2,
+      "group": "Light",
+      "place": "42 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.21,
+      "long": 16.006,
+      "mag": 4.2,
+      "group": "Light",
+      "place": "19 km NNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 45.326,
+      "long": 14.576,
+      "mag": 4.2,
+      "group": "Light",
+      "place": "2 km NE of Krasica, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.732,
+      "long": 16.856,
+      "mag": 4.2,
+      "group": "Light",
+      "place": "Croatia region"
+    },
+    {
+      "year": 2005,
+      "lat": 43.156,
+      "long": 15.428,
+      "mag": 4.2,
+      "group": "Light",
+      "place": "55 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2006,
+      "lat": 45.758,
+      "long": 15.654,
+      "mag": 4.2,
+      "group": "Light",
+      "place": "1 km SW of Rude, Croatia"
+    },
+    {
+      "year": 2008,
+      "lat": 42.732,
+      "long": 18,
+      "mag": 4.2,
+      "group": "Light",
+      "place": "9 km NW of Moko�ica, Croatia"
+    },
+    {
+      "year": 2013,
+      "lat": 43.0937,
+      "long": 17.2425,
+      "mag": 4.2,
+      "group": "Light",
+      "place": "13 km NNE of Orebi?, Croatia"
+    },
+    {
+      "year": 2018,
+      "lat": 43.7767,
+      "long": 15.7401,
+      "mag": 4.2,
+      "group": "Light",
+      "place": "2 km N of Tribunj, Croatia"
+    },
+    {
+      "year": 2020,
+      "lat": 42.9914,
+      "long": 17.7981,
+      "mag": 4.2,
+      "group": "Light",
+      "place": "14 km ESE of Metkovi?, Croatia"
+    },
+    {
+      "year": 2021,
+      "lat": 45.4227,
+      "long": 16.0656,
+      "mag": 4.2,
+      "group": "Light",
+      "place": "9 km N of Glina, Croatia"
+    },
+    {
+      "year": 2021,
+      "lat": 45.406,
+      "long": 16.3169,
+      "mag": 4.2,
+      "group": "Light",
+      "place": "4 km SSE of Petrinja, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.218,
+      "long": 15.505,
+      "mag": 4.3,
+      "group": "Light",
+      "place": "50 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.168,
+      "long": 15.446,
+      "mag": 4.3,
+      "group": "Light",
+      "place": "54 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.067,
+      "long": 15.186,
+      "mag": 4.3,
+      "group": "Light",
+      "place": "73 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.072,
+      "long": 15.468,
+      "mag": 4.3,
+      "group": "Light",
+      "place": "51 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 42.997,
+      "long": 17.77,
+      "mag": 4.3,
+      "group": "Light",
+      "place": "11 km ESE of Metkovi?, Croatia"
+    },
+    {
+      "year": 2010,
+      "lat": 42.371,
+      "long": 16.599,
+      "mag": 4.3,
+      "group": "Light",
+      "place": "50 km SSW of Lastovo, Croatia"
+    },
+    {
+      "year": 2011,
+      "lat": 42.891,
+      "long": 17.866,
+      "mag": 4.3,
+      "group": "Light",
+      "place": "5 km NNE of Podgora, Croatia"
+    },
+    {
+      "year": 2020,
+      "lat": 45.5266,
+      "long": 16.16,
+      "mag": 4.3,
+      "group": "Light",
+      "place": "7 km SSW of Lekenik, Croatia"
+    },
+    {
+      "year": 2020,
+      "lat": 45.4238,
+      "long": 16.2895,
+      "mag": 4.3,
+      "group": "Light",
+      "place": "1 km S of Petrinja, Croatia"
+    },
+    {
+      "year": 2021,
+      "lat": 42.717,
+      "long": 18.0711,
+      "mag": 4.3,
+      "group": "Light",
+      "place": "4 km NNW of Moko�ica, Croatia"
+    },
+    {
+      "year": 2000,
+      "lat": 44.222,
+      "long": 15.98,
+      "mag": 4.4,
+      "group": "Light",
+      "place": "13 km SE of Gra?ac, Croatia"
+    },
+    {
+      "year": 2000,
+      "lat": 42.568,
+      "long": 16.831,
+      "mag": 4.4,
+      "group": "Light",
+      "place": "22 km SSW of Lastovo, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.069,
+      "long": 15.361,
+      "mag": 4.4,
+      "group": "Light",
+      "place": "59 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.072,
+      "long": 15.741,
+      "mag": 4.4,
+      "group": "Light",
+      "place": "28 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2013,
+      "lat": 45.07,
+      "long": 15.023,
+      "mag": 4.4,
+      "group": "Light",
+      "place": "11 km NW of Brinje, Croatia"
+    },
+    {
+      "year": 2016,
+      "lat": 43.4883,
+      "long": 16.2668,
+      "mag": 4.4,
+      "group": "Light",
+      "place": "0 km S of Okrug Gornji, Croatia"
+    },
+    {
+      "year": 2016,
+      "lat": 45.2638,
+      "long": 18.3968,
+      "mag": 4.4,
+      "group": "Light",
+      "place": "1 km NNW of Pi�korevci, Croatia"
+    },
+    {
+      "year": 2016,
+      "lat": 43.0612,
+      "long": 17.4307,
+      "mag": 4.4,
+      "group": "Light",
+      "place": "8 km WNW of Komin, Croatia"
+    },
+    {
+      "year": 2019,
+      "lat": 42.6656,
+      "long": 17.651,
+      "mag": 4.4,
+      "group": "Light",
+      "place": "19 km S of Ston, Croatia"
+    },
+    {
+      "year": 2019,
+      "lat": 43.6877,
+      "long": 16.3978,
+      "mag": 4.4,
+      "group": "Light",
+      "place": "14 km N of Ka�tel Luk�i?, Croatia"
+    },
+    {
+      "year": 2020,
+      "lat": 45.454,
+      "long": 16.1814,
+      "mag": 4.4,
+      "group": "Light",
+      "place": "8 km WNW of Petrinja, Croatia"
+    },
+    {
+      "year": 2020,
+      "lat": 45.4504,
+      "long": 16.204,
+      "mag": 4.4,
+      "group": "Light",
+      "place": "Croatia region"
+    },
+    {
+      "year": 2021,
+      "lat": 43.666,
+      "long": 16.07,
+      "mag": 4.4,
+      "group": "Light",
+      "place": "12 km E of Brodarica, Croatia"
+    },
+    {
+      "year": 2021,
+      "lat": 45.5036,
+      "long": 15.9667,
+      "mag": 4.4,
+      "group": "Light",
+      "place": "8 km ESE of Lasinja, Croatia"
+    },
+    {
+      "year": 2021,
+      "lat": 45.4155,
+      "long": 16.2628,
+      "mag": 4.4,
+      "group": "Light",
+      "place": "3 km SW of Petrinja, Croatia"
+    },
+    {
+      "year": 2001,
+      "lat": 44.962,
+      "long": 15.114,
+      "mag": 4.5,
+      "group": "Light",
+      "place": "4 km SSW of Brinje, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.072,
+      "long": 15.305,
+      "mag": 4.5,
+      "group": "Light",
+      "place": "64 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.26,
+      "long": 15.539,
+      "mag": 4.5,
+      "group": "Light",
+      "place": "45 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.169,
+      "long": 15.527,
+      "mag": 4.5,
+      "group": "Light",
+      "place": "48 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.082,
+      "long": 15.459,
+      "mag": 4.5,
+      "group": "Light",
+      "place": "51 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2005,
+      "lat": 42.681,
+      "long": 17.37,
+      "mag": 4.5,
+      "group": "Light",
+      "place": "31 km SSE of Lumbarda, Croatia"
+    },
+    {
+      "year": 2020,
+      "lat": 45.3665,
+      "long": 16.2696,
+      "mag": 4.5,
+      "group": "Light",
+      "place": "8 km SSW of Petrinja, Croatia"
+    },
+    {
+      "year": 2002,
+      "lat": 42.612,
+      "long": 17.157,
+      "mag": 4.6,
+      "group": "Light",
+      "place": "27 km SE of Lastovo, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.254,
+      "long": 15.571,
+      "mag": 4.6,
+      "group": "Light",
+      "place": "44 km SW of Rogoznica, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 44.979,
+      "long": 14.648,
+      "mag": 4.6,
+      "group": "Light",
+      "place": "4 km SSE of Punat, Croatia"
+    },
+    {
+      "year": 2011,
+      "lat": 43.795,
+      "long": 16.445,
+      "mag": 4.6,
+      "group": "Light",
+      "place": "14 km WNW of Hrvace, Croatia"
+    },
+    {
+      "year": 2018,
+      "lat": 43.3681,
+      "long": 16.8616,
+      "mag": 4.6,
+      "group": "Light",
+      "place": "5 km W of Brela, Croatia"
+    },
+    {
+      "year": 2020,
+      "lat": 44.3087,
+      "long": 15.4606,
+      "mag": 4.6,
+      "group": "Light",
+      "place": "2 km NE of Starigrad, Croatia"
+    },
+    {
+      "year": 2020,
+      "lat": 45.9104,
+      "long": 15.9786,
+      "mag": 4.6,
+      "group": "Light",
+      "place": "6 km E of Gornja Bistra, Croatia"
+    },
+    {
+      "year": 2021,
+      "lat": 45.4755,
+      "long": 16.2341,
+      "mag": 4.6,
+      "group": "Light",
+      "place": "6 km NW of Petrinja, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.015,
+      "long": 17.697,
+      "mag": 4.7,
+      "group": "Light",
+      "place": "5 km SE of Metkovi?, Croatia"
+    },
+    {
+      "year": 2007,
+      "lat": 43.741,
+      "long": 15.174,
+      "mag": 4.7,
+      "group": "Light",
+      "place": "22 km S of Sali, Croatia"
+    },
+    {
+      "year": 2021,
+      "lat": 45.2099,
+      "long": 16.2781,
+      "mag": 4.7,
+      "group": "Light",
+      "place": "16 km NNW of Dvor, Croatia"
+    },
+    {
+      "year": 2021,
+      "lat": 45.4322,
+      "long": 16.2422,
+      "mag": 4.7,
+      "group": "Light",
+      "place": "3 km W of Petrinja, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.115,
+      "long": 15.233,
+      "mag": 4.8,
+      "group": "Light",
+      "place": "70 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.087,
+      "long": 15.504,
+      "mag": 4.8,
+      "group": "Light",
+      "place": "48 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2020,
+      "lat": 45.4413,
+      "long": 16.1877,
+      "mag": 4.8,
+      "group": "Light",
+      "place": "8 km W of Petrinja, Croatia"
+    },
+    {
+      "year": 2007,
+      "lat": 45.106,
+      "long": 14.928,
+      "mag": 4.9,
+      "group": "Light",
+      "place": "11 km ESE of Novi Vinodolski, Croatia"
+    },
+    {
+      "year": 2013,
+      "lat": 43.6684,
+      "long": 16.8583,
+      "mag": 4.9,
+      "group": "Light",
+      "place": "10 km ESE of Otok, Croatia"
+    },
+    {
+      "year": 2020,
+      "lat": 45.3879,
+      "long": 16.2421,
+      "mag": 4.9,
+      "group": "Light",
+      "place": "6 km SW of Petrinja, Croatia"
+    },
+    {
+      "year": 2021,
+      "lat": 43.6811,
+      "long": 16.8584,
+      "mag": 4.9,
+      "group": "Light",
+      "place": "10 km E of Otok, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.15,
+      "long": 15.335,
+      "mag": 5,
+      "group": "Moderate",
+      "place": "62 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2004,
+      "lat": 43.167,
+      "long": 15.364,
+      "mag": 5.3,
+      "group": "Moderate",
+      "place": "60 km WNW of Komi�a, Croatia"
+    },
+    {
+      "year": 2020,
+      "lat": 45.9072,
+      "long": 15.9697,
+      "mag": 5.3,
+      "group": "Moderate",
+      "place": "5 km E of Gornja Bistra, Croatia"
+    },
+    {
+      "year": 2003,
+      "lat": 43.109,
+      "long": 15.464,
+      "mag": 5.5,
+      "group": "Moderate",
+      "place": "51 km W of Komi�a, Croatia"
+    },
+    {
+      "year": 2020,
+      "lat": 45.4244,
+      "long": 16.2573,
+      "mag": 6.4,
+      "group": "Strong",
+      "place": "2 km WSW of Petrinja, Croatia"
+    }
+  ];
+
+
+  function calcSums(entries) {
+    var result = {};
+    entries.forEach(function (val) {
+
+      var key = val.year + ":" + val.group;
+
+      result[key] = result[key] || { year: val.year, group: val.group, value: 0 };
+
+      result[key].value++;
+    });
+  
+    return Object.keys(result).map(function (key) {
+      return (result[key]);
+    });
+  }
+
+  const data = JSON.stringify(calcSums(markers), null, 2);
+
+  console.log(data);
+
+  const dataBar = [];
+
+  for (i = 0; i < 23; i++) {
+    var value = 2000 + i;
+    dataBar[i] = JSON.parse(data).filter(({ year }) => year === value);
+  }
+
+  // geojson data used from 'https://github.com/holtzy/D3-graph-gallery/blob/master/DATA/world.geojson', author: Holtz Yan
+
+  d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson").then(function (data) {
+
+    data.features = data.features.filter(d => d.properties.name == "Croatia")
+
+    const color = d3.scaleOrdinal()
+      .domain(["Minor", "Light", "Moderate", "Strong"])
+      .range(["#C9CBA3", "#FFE1A8", "#E26D5C", "#723D46"])
+
+    const size = d3.scaleLinear()
+      .domain([2.5, 6.4])
+      .range([4, 30])
+
+    const zoom = d3.zoom()
+      .on('zoom', updateCircles)
+
+    function updateCircles(event, d) {
+      svg.attr('transform', event.transform);
+      svg.selectAll("." + "y" + document.getElementById("current").textContent).attr("r", d => size(d.mag) / (event.transform.k).toFixed(2)).attr("stroke-width", 3 / (event.transform.k).toFixed(2))
+    }
+
+    var map = d3.selectAll("#map")
+      .call(zoom)
+
+    svg
+      .append("g")
+      .selectAll("path")
+      .data(data.features)
+      .join("path")
+      .attr("fill", "#b8b8b8")
+      .attr("d", d3.geoPath()
+        .projection(projection)
+      )
+      .style("stroke", "black")
+      .style("opacity", .3)
+
+
+    var mouseover = function (event, d) {
+      tooltip.style("visibility", "visible")
+    }
+    var mousemove = function (event, d) {
+      tooltip
+        .html("Place: " + d.place + "<br>" + "Magnitude: " + d.mag)
+        .style("top", (event.pageY - 100) + "px")
+        .style("left", (event.pageX + 50) + "px");
+    }
+    var mouseleave = function (event, d) {
+      tooltip.style("visibility", "hidden")
+    }
+
+    svg
+      .selectAll("myCircles")
+      .data(markers)
+      .enter()
+      .append("circle")
+      .attr("class", d => "y y" + d.year + " " + d.group)
+      .attr("cx", d => projection([d.long, d.lat])[0])
+      .attr("cy", d => projection([d.long, d.lat])[1])
+      .attr("r", d => size(d.mag))
+      .style("fill", d => color(d.group))
+      .attr("stroke", d => color(d.group))
+      .attr("stroke-width", 3)
+      .attr("fill-opacity", .5)
+      .on("mouseover", mouseover)
+      .on("mousemove", mousemove)
+      .on("mouseleave", mouseleave)
+
+    svg.selectAll("." + "y").style("opacity", 0).style("visibility", "hidden")
+    svg.selectAll("." + "y2020").transition().duration(1000).style("visibility", "visible").style("opacity", 1).attr("r", function (d) { return size(d.mag) })
+
+    var y = 2000;
+    var button = document.getElementsByClassName("btn");
+
+    function step() {
+      play(y);
+      barplot(dataBar[y - 2000]);
+      if (y == 2022) {
+        y = 2000;
+      } else {
+        y++;
+      }
+    }
+
+    function play(y) {
+      svg.selectAll("." + "y").style("visibiliity", "hidden").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      var current = d3.select("#current").html(y);
+      var text = document.getElementById("mapsvg").getAttribute("transform");
+      var position = text.search("scale");
+      var kScale = text[position + 6];
+      if (text[position + 7] == '.') {
+        kScale = kScale + text[position + 7] + text[position + 8] + text[position + 9]
+      }
+      console.log(y);
+      svg.selectAll("." + "y" + y).attr("r", function (d) { return size(d.mag) / kScale }).attr("stroke-width", 3 / kScale).transition().duration(1000).style("visibility", "visible").style("opacity", 1)
+    }
+
+    d3.selectAll(".play").on("click", () => {
+      if (d3.selectAll(".play").text() == "PLAY") {
+        d3.selectAll(".play").text("PAUSE")
+        y = parseInt(document.getElementById("current").textContent);
+        if (y == 2022) {
+          y = 2000;
+        } else {
+          y++;
+        }
+        play(y);
+        barplot(dataBar[y - 2000]);
+        if (y == 2022) {
+          y = 2000;
+        } else {
+          y++;
+        }
+        for(i = 0; i <= 22; i++){
+          button[i].disabled = true;
+        }
+        timer = setInterval(step, 2000);
+      } else {
+        d3.selectAll(".play").text("PLAY")
+        for(i = 0; i <= 22; i++){
+          button[i].disabled = false;
+        }
+        clearInterval(timer);
+      }
+    });
+
+    d3.selectAll(".b2000").on("click", () => {
+      svg.selectAll("." + "y").style("visibiliity", "hidden").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      var text = document.getElementById("mapsvg").getAttribute("transform");
+      var position = text.search("scale");
+      var kScale = text[position + 6];
+      if (text[position + 7] == '.') {
+        kScale = kScale + text[position + 7] + text[position + 8] + text[position + 9]
+      }
+      svg.selectAll("." + "y2000").attr("r", function (d) { return size(d.mag) / kScale }).attr("stroke-width", 3 / kScale).transition().duration(1000).style("visibility", "visible").style("opacity", 1)
+    });
+
+    d3.selectAll(".b2001").on("click", () => {
+      svg.selectAll("." + "y").style("visibiliity", "hidden").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      var text = document.getElementById("mapsvg").getAttribute("transform");
+      var position = text.search("scale");
+      var kScale = text[position + 6];
+      if (text[position + 7] == '.') {
+        kScale = kScale + text[position + 7] + text[position + 8] + text[position + 9]
+      }
+      svg.selectAll("." + "y2001").attr("r", function (d) { return size(d.mag) / kScale }).attr("stroke-width", 3 / kScale).transition().duration(1000).style("visibility", "visible").style("opacity", 1)
+    });
+
+    d3.selectAll(".b2002").on("click", () => {
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      var text = document.getElementById("mapsvg").getAttribute("transform");
+      var position = text.search("scale");
+      var kScale = text[position + 6];
+      if (text[position + 7] == '.') {
+        kScale = kScale + text[position + 7] + text[position + 8] + text[position + 9]
+      }
+      svg.selectAll("." + "y2002").attr("r", function (d) { return size(d.mag) / kScale }).attr("stroke-width", 3 / kScale).transition().duration(1000).style("visibility", "visible").style("opacity", 1)
+    });
+
+    d3.selectAll(".b2003").on("click", () => {
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      var text = document.getElementById("mapsvg").getAttribute("transform");
+      var position = text.search("scale");
+      var kScale = text[position + 6];
+      if (text[position + 7] == '.') {
+        kScale = kScale + text[position + 7] + text[position + 8] + text[position + 9]
+      }
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      svg.selectAll("." + "y2003").attr("r", function (d) { return size(d.mag) / kScale }).attr("stroke-width", 3 / kScale).transition().duration(1000).style("visibility", "visible").style("opacity", 1)
+    });
+
+    d3.selectAll(".b2004").on("click", () => {
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      var text = document.getElementById("mapsvg").getAttribute("transform");
+      var position = text.search("scale");
+      var kScale = text[position + 6];
+      if (text[position + 7] == '.') {
+        kScale = kScale + text[position + 7] + text[position + 8] + text[position + 9]
+      }
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      svg.selectAll("." + "y2004").attr("r", function (d) { return size(d.mag) / kScale }).attr("stroke-width", 3 / kScale).transition().duration(1000).style("visibility", "visible").style("opacity", 1)
+    });
+
+    d3.selectAll(".b2005").on("click", () => {
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      var text = document.getElementById("mapsvg").getAttribute("transform");
+      var position = text.search("scale");
+      var kScale = text[position + 6];
+      if (text[position + 7] == '.') {
+        kScale = kScale + text[position + 7] + text[position + 8] + text[position + 9]
+      }
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      svg.selectAll("." + "y2005").attr("r", function (d) { return size(d.mag) / kScale }).attr("stroke-width", 3 / kScale).transition().duration(1000).style("visibility", "visible").style("opacity", 1)
+    });
+
+    d3.selectAll(".b2006").on("click", () => {
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      var text = document.getElementById("mapsvg").getAttribute("transform");
+      var position = text.search("scale");
+      var kScale = text[position + 6];
+      if (text[position + 7] == '.') {
+        kScale = kScale + text[position + 7] + text[position + 8] + text[position + 9]
+      }
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      svg.selectAll("." + "y2006").attr("r", function (d) { return size(d.mag) / kScale }).attr("stroke-width", 3 / kScale).transition().duration(1000).style("visibility", "visible").style("opacity", 1)
+    });
+
+    d3.selectAll(".b2007").on("click", () => {
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      var text = document.getElementById("mapsvg").getAttribute("transform");
+      var position = text.search("scale");
+      var kScale = text[position + 6];
+      if (text[position + 7] == '.') {
+        kScale = kScale + text[position + 7] + text[position + 8] + text[position + 9]
+      }
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      svg.selectAll("." + "y2007").attr("r", function (d) { return size(d.mag) / kScale }).attr("stroke-width", 3 / kScale).transition().duration(1000).style("visibility", "visible").style("opacity", 1)
+    });
+
+    d3.selectAll(".b2008").on("click", () => {
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      var text = document.getElementById("mapsvg").getAttribute("transform");
+      var position = text.search("scale");
+      var kScale = text[position + 6];
+      if (text[position + 7] == '.') {
+        kScale = kScale + text[position + 7] + text[position + 8] + text[position + 9]
+      }
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      svg.selectAll("." + "y2008").attr("r", function (d) { return size(d.mag) / kScale }).attr("stroke-width", 3 / kScale).transition().duration(1000).style("visibility", "visible").style("opacity", 1)
+    });
+
+    d3.selectAll(".b2009").on("click", () => {
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      var text = document.getElementById("mapsvg").getAttribute("transform");
+      var position = text.search("scale");
+      var kScale = text[position + 6];
+      if (text[position + 7] == '.') {
+        kScale = kScale + text[position + 7] + text[position + 8] + text[position + 9]
+      }
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      svg.selectAll("." + "y2009").attr("r", function (d) { return size(d.mag) / kScale }).attr("stroke-width", 3 / kScale).transition().duration(1000).style("visibility", "visible").style("opacity", 1)
+    });
+
+    d3.selectAll(".b2010").on("click", () => {
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      var text = document.getElementById("mapsvg").getAttribute("transform");
+      var position = text.search("scale");
+      var kScale = text[position + 6];
+      if (text[position + 7] == '.') {
+        kScale = kScale + text[position + 7] + text[position + 8] + text[position + 9]
+      }
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      svg.selectAll("." + "y2010").attr("r", function (d) { return size(d.mag) / kScale }).attr("stroke-width", 3 / kScale).transition().duration(1000).style("visibility", "visible").style("opacity", 1)
+    });
+
+    d3.selectAll(".b2011").on("click", () => {
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      var text = document.getElementById("mapsvg").getAttribute("transform");
+      var position = text.search("scale");
+      var kScale = text[position + 6];
+      if (text[position + 7] == '.') {
+        kScale = kScale + text[position + 7] + text[position + 8] + text[position + 9]
+      }
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      svg.selectAll("." + "y2011").attr("r", function (d) { return size(d.mag) / kScale }).attr("stroke-width", 3 / kScale).transition().duration(1000).style("visibility", "visible").style("opacity", 1)
+    });
+
+    d3.selectAll(".b2012").on("click", () => {
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      var text = document.getElementById("mapsvg").getAttribute("transform");
+      var position = text.search("scale");
+      var kScale = text[position + 6];
+      if (text[position + 7] == '.') {
+        kScale = kScale + text[position + 7] + text[position + 8] + text[position + 9]
+      }
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      svg.selectAll("." + "y2012").attr("r", function (d) { return size(d.mag) / kScale }).attr("stroke-width", 3 / kScale).transition().duration(1000).style("visibility", "visible").style("opacity", 1)
+    });
+
+    d3.selectAll(".b2013").on("click", () => {
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      var text = document.getElementById("mapsvg").getAttribute("transform");
+      var position = text.search("scale");
+      var kScale = text[position + 6];
+      if (text[position + 7] == '.') {
+        kScale = kScale + text[position + 7] + text[position + 8] + text[position + 9]
+      }
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      svg.selectAll("." + "y2013").attr("r", function (d) { return size(d.mag) / kScale }).attr("stroke-width", 3 / kScale).transition().duration(1000).style("visibility", "visible").style("opacity", 1)
+    });
+
+    d3.selectAll(".b2014").on("click", () => {
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      var text = document.getElementById("mapsvg").getAttribute("transform");
+      var position = text.search("scale");
+      var kScale = text[position + 6];
+      if (text[position + 7] == '.') {
+        kScale = kScale + text[position + 7] + text[position + 8] + text[position + 9]
+      }
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      svg.selectAll("." + "y2014").attr("r", function (d) { return size(d.mag) / kScale }).attr("stroke-width", 3 / kScale).transition().duration(1000).style("visibility", "visible").style("opacity", 1)
+    });
+
+    d3.selectAll(".b2015").on("click", () => {
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      var text = document.getElementById("mapsvg").getAttribute("transform");
+      var position = text.search("scale");
+      var kScale = text[position + 6];
+      if (text[position + 7] == '.') {
+        kScale = kScale + text[position + 7] + text[position + 8] + text[position + 9]
+      }
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      svg.selectAll("." + "y2015").attr("r", function (d) { return size(d.mag) / kScale }).attr("stroke-width", 3 / kScale).transition().duration(1000).style("visibility", "visible").style("opacity", 1)
+    });
+
+    d3.selectAll(".b2016").on("click", () => {
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      var text = document.getElementById("mapsvg").getAttribute("transform");
+      var position = text.search("scale");
+      var kScale = text[position + 6];
+      if (text[position + 7] == '.') {
+        kScale = kScale + text[position + 7] + text[position + 8] + text[position + 9]
+      }
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      svg.selectAll("." + "y2016").attr("r", function (d) { return size(d.mag) / kScale }).attr("stroke-width", 3 / kScale).transition().duration(1000).style("visibility", "visible").style("opacity", 1)
+    });
+
+    d3.selectAll(".b2017").on("click", () => {
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      var text = document.getElementById("mapsvg").getAttribute("transform");
+      var position = text.search("scale");
+      var kScale = text[position + 6];
+      if (text[position + 7] == '.') {
+        kScale = kScale + text[position + 7] + text[position + 8] + text[position + 9]
+      }
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      svg.selectAll("." + "y2017").attr("r", function (d) { return size(d.mag) / kScale }).attr("stroke-width", 3 / kScale).transition().duration(1000).style("visibility", "visible").style("opacity", 1)
+    });
+
+    d3.selectAll(".b2018").on("click", () => {
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      var text = document.getElementById("mapsvg").getAttribute("transform");
+      var position = text.search("scale");
+      var kScale = text[position + 6];
+      if (text[position + 7] == '.') {
+        kScale = kScale + text[position + 7] + text[position + 8] + text[position + 9]
+      }
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      svg.selectAll("." + "y2018").attr("r", function (d) { return size(d.mag) / kScale }).attr("stroke-width", 3 / kScale).transition().duration(1000).style("visibility", "visible").style("opacity", 1)
+    });
+
+    d3.selectAll(".b2019").on("click", () => {
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      var text = document.getElementById("mapsvg").getAttribute("transform");
+      var position = text.search("scale");
+      var kScale = text[position + 6];
+      if (text[position + 7] == '.') {
+        kScale = kScale + text[position + 7] + text[position + 8] + text[position + 9]
+      }
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      svg.selectAll("." + "y2019").attr("r", function (d) { return size(d.mag) / kScale }).attr("stroke-width", 3 / kScale).transition().duration(1000).style("visibility", "visible").style("opacity", 1)
+    });
+
+    d3.selectAll(".b2020").on("click", () => {
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      var text = document.getElementById("mapsvg").getAttribute("transform");
+      var position = text.search("scale");
+      var kScale = text[position + 6];
+      if (text[position + 7] == '.') {
+        kScale = kScale + text[position + 7] + text[position + 8] + text[position + 9]
+      }
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      svg.selectAll("." + "y2020").transition().duration(1000).style("visibility", "visible").style("opacity", 1).attr("r", function (d) { return size(d.mag) / kScale }).attr("stroke-width", 3 / kScale)
+    });
+
+    d3.selectAll(".b2021").on("click", () => {
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      var text = document.getElementById("mapsvg").getAttribute("transform");
+      var position = text.search("scale");
+      var kScale = text[position + 6];
+      if (text[position + 7] == '.') {
+        kScale = kScale + text[position + 7] + text[position + 8] + text[position + 9]
+      }
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      svg.selectAll("." + "y2021").attr("r", function (d) { return size(d.mag) / kScale }).attr("stroke-width", 3 / kScale).transition().duration(1000).style("visibility", "visible").style("opacity", 1)
+    });
+
+    d3.selectAll(".b2022").on("click", () => {
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      var text = document.getElementById("mapsvg").getAttribute("transform");
+      var position = text.search("scale");
+      var kScale = text[position + 6];
+      if (text[position + 7] == '.') {
+        kScale = kScale + text[position + 7] + text[position + 8] + text[position + 9]
+      }
+      svg.selectAll("." + "y").transition().duration(1000).style("opacity", 0).attr("r", 0)
+      svg.selectAll("." + "y2022").attr("r", function (d) { return size(d.mag) / kScale }).attr("stroke-width", 3 / kScale).transition().duration(1000).style("visibility", "visible").style("opacity", 1)
+    });
+  })
+
+  // barplot
+
+  const margin = { top: 30, right: 30, bottom: 70, left: 60 },
+    w = 560 - margin.left - margin.right,
+    h = 500 - margin.top - margin.bottom;
+
+  const svgBar = d3.select("#my_dataviz")
+    .append("svg")
+    .attr("width", w + margin.left + margin.right)
+    .attr("height", h + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", `translate(${margin.left},${margin.top})`)
+
+  const x = d3.scaleBand()
+    .range([0, w])
+    .domain(dataBar[20].map(d => d.group))
+    .padding(0.2);
+  svgBar.append("g")
+    .attr("transform", `translate(0,${h})`)
+    .call(d3.axisBottom(x))
+
+  const y = d3.scaleLinear()
+    .range([h, 0]);
+  const yAxis = svgBar.append("g")
+    .attr("class", "myYaxis")
+
+  var tooltip = d3.select("#my_dataviz")
+    .append("div")
+    .style("position", "absolute")
+    .style("visibility", "hidden")
+    .style("background-color", "white")
+    .style("border", "solid")
+    .style("border-width", "1px")
+    .style("border-radius", "5px")
+    .style("padding", "10px")
+    .style("z-index", "1")
+
+  function barplot(data) {
+
+    y.domain([0, d3.max(data, d => d.value)]);
+    yAxis.transition().duration(1000).call(d3.axisLeft(y));
+
+    var u = svgBar.selectAll("rect")
+      .data(data)
+
+    var text = d3.select("#current")
+      .data(data)
+      .html(d => d.year)
+
+    if (data == dataBar[14]) {
+      var text = d3.select("#current")
+        .html("2014")
+    }
+
+    if (data == dataBar[9]) {
+      var text = d3.select("#current")
+        .html("2009")
+    }
+
+    const color = d3.scaleOrdinal()
+      .domain(["Minor", "Light", "Moderate", "Strong"])
+      .range(["#C9CBA3", "#FFE1A8", "#E26D5C", "#723D46"])
+
+    u
+      .join("rect")
+      .style("fill", d => color(d.group))
+      .transition()
+      .duration(1000)
+      .attr("x", d => x(d.group))
+      .attr("y", d => y(d.value))
+      .attr("width", x.bandwidth())
+      .attr("height", d => h - y(d.value))
+      .attr("id", d => d.group)
+
+    setTimeout(function () {
+      var year = document.getElementById("current").textContent;
+
+      var minor = svgBar.selectAll("#Minor")
+        .attr("class", "deselected")
+        .on("mouseover", function () {
+          minor.attr("opacity", .7);
+          if (d3.selectAll(".selected")._groups[0].length) {
+            svg.selectAll("." + "y").filter(function () { return this.classList.contains('Minor') }).style("visibility", "visible");
+          } else {
+            svg.selectAll("." + "y").filter(function () { return !this.classList.contains('Minor') }).style("visibility", "hidden");
+          }
+          return tooltip.html("Earthquakes: " + data[0].value + "<br>Magnitude: 2.5-3.9").style("visibility", "visible");
+        })
+        .on("mousemove", function () { return tooltip.style("top", (event.pageY - 100) + "px").style("left", (event.pageX + 50) + "px"); })
+        .on("mouseout", function () {
+          if (!(d3.selectAll("#Minor.selected")._groups[0].length) && d3.selectAll(".selected")._groups[0].length) {
+            svg.selectAll("." + "y").filter(function () { return this.classList.contains('Minor') }).style("visibility", "hidden");
+          }
+          if (d3.selectAll(".selected")._groups[0].length) {
+            svg.selectAll("." + "y").filter(function () { return this.classList.contains('.selected') }).style("visibility", "visible");
+          } else {
+            svg.selectAll(".y" + year).style("visibility", "visible");
+          }
+          minor.attr("opacity", 1);
+          return tooltip.style("visibility", "hidden");
+        })
+        .on("click", function () {
+          if (d3.selectAll("#Minor.deselected")._groups[0].length) {
+            minor.attr("class", "selected");
+            var selected = d3.selectAll("#Minor.selected");
+            selected.attr("stroke", "black").attr("stroke-width", 3);
+          } else {
+            minor.attr("class", "deselected");
+            var selected = d3.selectAll("#Minor.deselected");
+            selected.attr("stroke", "black").attr("stroke-width", 0);
+          }
+        });
+      minor.attr("stroke", "black").attr("stroke-width", 0);
+
+      var light = svgBar.selectAll("#Light")
+        .attr("class", "deselected")
+        .on("mouseover", function () {
+          light.attr("opacity", .7);
+          if (d3.selectAll(".selected")._groups[0].length) {
+            svg.selectAll("." + "y").filter(function () { return this.classList.contains('Light') }).style("visibility", "visible");
+          } else {
+            svg.selectAll("." + "y").filter(function () { return !this.classList.contains('Light') }).style("visibility", "hidden");
+          }
+          if (svgBar.selectAll("#Minor")._groups[0][0]) var i = 1;
+          else i = 0;
+          return tooltip.html("Earthquakes: " + data[i].value + "<br>Magnitude: 4.0-4.9").style("visibility", "visible");
+        })
+        .on("mousemove", function () { return tooltip.style("top", (event.pageY - 100) + "px").style("left", (event.pageX + 50) + "px"); })
+        .on("mouseout", function () {
+          if (!(d3.selectAll("#Light.selected")._groups[0].length) && d3.selectAll(".selected")._groups[0].length) {
+            svg.selectAll("." + "y").filter(function () { return this.classList.contains('Light') }).style("visibility", "hidden");
+          }
+          if (d3.selectAll(".selected")._groups[0].length) {
+            svg.selectAll("." + "y").filter(function () { return this.classList.contains('.selected') }).style("visibility", "visible");
+          } else {
+            svg.selectAll(".y" + year).style("visibility", "visible");
+          }
+          light.attr("opacity", 1);
+          return tooltip.style("visibility", "hidden");
+        })
+        .on("click", function () {
+          if (d3.selectAll("#Light.deselected")._groups[0].length) {
+            light.attr("class", "selected");
+            var selected = d3.selectAll("#Light.selected");
+            selected.attr("stroke", "black").attr("stroke-width", 3);
+          } else {
+            light.attr("class", "deselected");
+            var selected = d3.selectAll("#Light.deselected");
+            selected.attr("stroke", "black").attr("stroke-width", 0);
+          }
+        });
+
+      light.attr("stroke", "black").attr("stroke-width", 0);
+
+      var moderate = svgBar.selectAll("#Moderate")
+        .attr("class", "deselected")
+        .on("mouseover", function () {
+          moderate.attr("opacity", .7);
+          if (d3.selectAll(".selected")._groups[0].length) {
+            svg.selectAll("." + "y").filter(function () { return this.classList.contains('Moderate') }).style("visibility", "visible");
+          } else {
+            svg.selectAll("." + "y").filter(function () { return !this.classList.contains('Moderate') }).style("visibility", "hidden");
+          }
+          if (svgBar.selectAll("#Minor")._groups[0][0] && svgBar.selectAll("#Light")._groups[0][0]) i = 2;
+          else if (svgBar.selectAll("#Minor")._groups[0][0] || svgBar.selectAll("#Light")._groups[0][0]) var i = 1;
+          else i = 0;
+          return tooltip.html("Earthquakes: " + data[i].value + "<br>Magnitude: 5.0-5.9").style("visibility", "visible");
+        })
+        .on("mousemove", function () { return tooltip.style("top", (event.pageY - 100) + "px").style("left", (event.pageX + 50) + "px"); })
+        .on("mouseout", function () {
+          if (!(d3.selectAll("#Moderate.selected")._groups[0].length) && d3.selectAll(".selected")._groups[0].length) {
+            svg.selectAll("." + "y").filter(function () { return this.classList.contains('Moderate') }).style("visibility", "hidden");
+          }
+          if (d3.selectAll(".selected")._groups[0].length) {
+            svg.selectAll("." + "y").filter(function () { return this.classList.contains('.selected') }).style("visibility", "visible");
+          } else {
+            svg.selectAll(".y" + year).style("visibility", "visible");
+          }
+          moderate.attr("opacity", 1);
+          return tooltip.style("visibility", "hidden");
+        })
+        .on("click", function () {
+          if (d3.selectAll("#Moderate.deselected")._groups[0].length) {
+            moderate.attr("class", "selected");
+            var selected = d3.selectAll("#Moderate.selected");
+            selected.attr("stroke", "black").attr("stroke-width", 3);
+          } else {
+            moderate.attr("class", "deselected");
+            var selected = d3.selectAll("#Moderate.deselected");
+            selected.attr("stroke", "black").attr("stroke-width", 0);
+          }
+        });
+
+      moderate.attr("stroke", "black").attr("stroke-width", 0);
+
+      var strong = svgBar.selectAll("#Strong")
+        .attr("class", "deselected")
+        .on("mouseover", function () {
+          strong.attr("opacity", .7);
+          if (d3.selectAll(".selected")._groups[0].length) {
+            svg.selectAll("." + "y").filter(function () { return this.classList.contains('Strong') }).style("visibility", "visible");
+          } else {
+            svg.selectAll("." + "y").filter(function () { return !this.classList.contains('Strong') }).style("visibility", "hidden");
+          }
+          if (svgBar.selectAll("#Minor")._groups[0][0] && svgBar.selectAll("#Light")._groups[0][0] && svgBar.selectAll("#Moderate")._groups[0][0]) i = 3;
+          else if (svgBar.selectAll("#Minor")._groups[0][0] && svgBar.selectAll("#Light")._groups[0][0] || svgBar.selectAll("#Light")._groups[0][0] && svgBar.selectAll("#Moderate")._groups[0][0] || svgBar.selectAll("#Minor")._groups[0][0] && svgBar.selectAll("#Moderate")._groups[0][0]) var i = 2;
+          else if (svgBar.selectAll("#Minor")._groups[0][0] || svgBar.selectAll("#Light")._groups[0][0] || svgBar.selectAll("#Moderate")._groups[0][0]) var i = 1;
+          else i = 0;
+          return tooltip.html("Earthquakes: " + data[i].value + "<br>Magnitude: 6.0-6.9").style("visibility", "visible");
+        })
+        .on("mousemove", function () { return tooltip.style("top", (event.pageY - 100) + "px").style("left", (event.pageX + 50) + "px"); })
+        .on("mouseout", function () {
+          if (!(d3.selectAll("#Strong.selected")._groups[0].length) && d3.selectAll(".selected")._groups[0].length) {
+            svg.selectAll("." + "y").filter(function () { return this.classList.contains('Strong') }).style("visibility", "hidden");
+          }
+          if (d3.selectAll(".selected")._groups[0].length) {
+            svg.selectAll("." + "y").filter(function () { return this.classList.contains('.selected') }).style("visibility", "visible");
+          } else {
+            svg.selectAll(".y" + year).style("visibility", "visible");
+          }
+          strong.attr("opacity", 1);
+          return tooltip.style("visibility", "hidden");
+        })
+        .on("click", function () {
+          if (d3.selectAll("#Strong.deselected")._groups[0].length) {
+            strong.attr("class", "selected");
+            var selected = d3.selectAll("#Strong.selected");
+            selected.attr("stroke", "black").attr("stroke-width", 3);
+          } else {
+            strong.attr("class", "deselected");
+            var selected = d3.selectAll("#Strong.deselected");
+            selected.attr("stroke", "black").attr("stroke-width", 0);
+          }
+        });
+
+      strong.attr("stroke", "black").attr("stroke-width", 0);
+
+    }, 500);
+
+  }
+
+  barplot(dataBar[20])
+
+</script>
